@@ -1,0 +1,38 @@
+[33mcommit 812b7059e1e49d2a39cee686137fde8ba4785849[m[33m ([m[1;36mHEAD -> [m[1;32madd-mpl3115a-firmware[m[33m, [m[1;32mmain[m[33m)[m
+Author: koyuul <shannonkyle.deleon@gmail.com>
+Date:   Sat Oct 15 13:53:17 2022 -0700
+
+    Added MPL3115A firmware
+
+[33mcommit 95df663480fea744e0d4f5790fdb0e33def2cafe[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Adrien Carrou <dridriswim@gmail.com>
+Date:   Sun Oct 9 23:13:09 2022 -0700
+
+    adds stubbed out classes for Friday work
+
+[33mcommit 7470c996f96f32993cddabe5237a4a86da2f2c3e[m[33m ([m[1;31morigin/develop[m[33m)[m
+Author: acarrou <dridriswim@gmail.com>
+Date:   Sat Oct 8 22:40:29 2022 -0700
+
+    adds start to payload and container code framework
+
+[33mcommit 1a2457a8c85eb17e5060f2fb4bcf525cb0043c25[m
+Merge: 6d3b4d9 659b100
+Author: Adrien <50222631+acarrou@users.noreply.github.com>
+Date:   Fri Oct 7 16:45:09 2022 -0700
+
+    Merge pull request #1 from Cube-3-San-Jose-State/adrien-test-branch
+    
+    adds hello script
+
+[33mcommit 659b100e7636f641706bced0c4f2e833f86982be[m
+Author: acarrou <dridriswim@gmail.com>
+Date:   Fri Oct 7 16:42:12 2022 -0700
+
+    adds hello script
+
+[33mcommit 6d3b4d98e12235af8c9eb421ab4d3e62f60c8a0a[m
+Author: Adrien <50222631+acarrou@users.noreply.github.com>
+Date:   Wed Oct 5 10:39:07 2022 -0700
+
+    Initial commit
