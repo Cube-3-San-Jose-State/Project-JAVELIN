@@ -1,9 +1,18 @@
 #include <Arduino.h>
+#include "PA1616S.hpp"
 
+PA1616S gps;
 void setup() {
-  // put your setup code here, to run once:
+	Serial.begin(9600);
+	while (!Serial) delay(10);
+	gps.initialize();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+	gps.update();
+
+	Serial.print("Longitude: ");
+	Serial.println(gps.getLongitude());
+	Serial.print("Latitude: ");
+	Serial.println(gps.getLatitude());
 }
