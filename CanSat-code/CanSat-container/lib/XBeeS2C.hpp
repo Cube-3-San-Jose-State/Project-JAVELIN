@@ -9,23 +9,27 @@ class XBeeS2C
         int channel;
 
     public:
+        XBeeS2C(int device_address_, int channel_)
+        {
+            device_address = device_address_;
+            channel = channel_;
+        }
+
         void Intialize()
         {
             Wire.begin();
             Wire.beginTransmission(device_address);
-            //Write.write(
-            Wire.endTransmission(true); 
+            Wire.endTransmission(true);
         }
-        void readData()
-        {
 
+        void TransmitData(string data)
+        {
+            //Transmit data to the Reciever Xbee on the container
         }
+
         void getData()
         {
             return data;
         }
-        void getChannel()
-        {
-            return channel;
-        }
+
 };
