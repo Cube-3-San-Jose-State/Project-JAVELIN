@@ -35,12 +35,12 @@ namespace CanSat
         }
 
         void ReadMPL() {
-            Wire.beginTransmission(signal_pin);
+            Wire.beginTransmission(trig);
         }
         
         int GetSignalPin()
         {
-            return signal_pin;
+            return trig;
         }
 
     };
