@@ -1,7 +1,7 @@
 #include <Arduino.h>
-
+#include "../lib/MAX17048.hpp"
 void setup() {
-  // put your setup code here, to run once:
+
 }
 
 void loop() {
