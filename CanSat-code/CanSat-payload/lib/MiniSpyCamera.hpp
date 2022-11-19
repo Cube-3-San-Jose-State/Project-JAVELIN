@@ -1,5 +1,4 @@
 #pragma once
-#include <Wire.h>
 namespace CanSat
 {
     class MiniSpyCamera
