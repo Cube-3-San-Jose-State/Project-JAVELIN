@@ -13,17 +13,6 @@ namespace CanSat
             }
             
 
-        void setup() {                
-        // initialize the digital pins as output.
-            pinMode(trig, OUTPUT);         
-            digitalWrite(trig, HIGH); 
-        }
-
-        void loop() {
-            TakeImage();  
-            TakeVideo(5000);            
-        }
-
         void TakeImage(){
             digitalWrite(trig, LOW);   
             delay(50);               
