@@ -24,10 +24,38 @@ class XBeeS2C
 
         void TransmitData(string data)
         {
-            //Transmit data to the Reciever Xbee on the container
+            Serial.print('<'); 	//Starting symbol
+ 	        Serial.print(data);
+	        Serial.println('>'); //Ending symbol
         }
 
-        void getData()
+        void recieveData()
+        {
+            bool started = false;
+            bool ended = false;
+            while(Serial.available() > 0)
+            {
+                recived = Serial.read();
+                
+                if (recieved == '<')
+                {
+                    started = true;
+                }
+
+                if (recieved == '>')
+                {
+                    ended = true;
+                }
+            }
+
+            if (started == true && ended == true)
+            {
+                Write(device_address, recieved);
+                data = recieved;
+            }
+        }
+
+        string getData()
         {
             return data;
         }
