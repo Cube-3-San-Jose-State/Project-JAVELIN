@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "PA1616S.hpp"
+#include "../lib/PA1616S.hpp"
 
 PA1616S gps;
 void setup() {

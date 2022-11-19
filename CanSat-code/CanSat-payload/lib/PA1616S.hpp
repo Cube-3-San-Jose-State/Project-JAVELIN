@@ -44,6 +44,7 @@ class PA1616S
         double translate_latitude(string rawLatitude, string direction){
             //rawLatitude gives data in degree/minutes, as ddmm.mmmm, needs to be converted to GPS coordinates
             String nmeaLatitude = rawLatitude.c_str();
+            if (nmeaLatitude.equals("")) return 0.00;
             int degrees = nmeaLatitude.substring(0, 2).toInt();
             double minutes = nmeaLatitude.substring(2).toFloat();
 
@@ -55,6 +56,7 @@ class PA1616S
 
         double translate_longitude(string rawLongitude, string direction){
             String nmeaLongitude = rawLongitude.c_str();
+            if (nmeaLongitude.equals("")) return 0.00;
             int degrees = nmeaLongitude.substring(0, 3).toInt();
             double minutes = nmeaLongitude.substring(3).toFloat();
 
