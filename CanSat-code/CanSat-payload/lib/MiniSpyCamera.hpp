@@ -32,14 +32,6 @@ namespace CanSat
             delay(1000);
         }
 
-        void ReadMPL() {
-            Wire.beginTransmission(trig);
-        }
-        
-        int GetSignalPin()
-        {
-            return trig;
-        }
 
     };
 }
