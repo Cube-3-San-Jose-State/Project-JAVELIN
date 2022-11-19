@@ -6,9 +6,9 @@ namespace CanSat
         private:
            int trig;
         public:
-            MiniSpyCamera(int &trig_pin)
+            MiniSpyCamera(int trig_pin)
             {
-               trig = trig_pin
+               trig = trig_pin;
             }
             
 
