@@ -11,6 +11,11 @@ namespace CanSat
             {
                trig = trig_pin
             }
+            public:
+            MiniSpyCamera(int &trig_pin)
+            {
+               trig = trig_pin
+            }
             
 
         void TakeImage(){
