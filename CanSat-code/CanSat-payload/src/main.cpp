@@ -9,10 +9,11 @@ void setup() {
 }
 
 void loop() {
+	delay(100);
 	gps.update();
-
+	
 	Serial.print("Longitude: ");
-	Serial.println(gps.getLongitude());
+	Serial.println(gps.getLongitude(), 6);
 	Serial.print("Latitude: ");
-	Serial.println(gps.getLatitude());
+	Serial.println(gps.getLatitude(), 6);
 }
