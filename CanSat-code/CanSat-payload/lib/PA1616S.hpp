@@ -17,59 +17,65 @@ class PA1616S
     private:
         vector<string> GPGGAFormat = { "code", "time_stamp", "latitude", "latitude_direction", "longitude", "longitude_direction", "quality", "satellite_count", "hdop", "altitude", "altitude_units", "geoid_separation", "geoid_separation_units", "seconds_since_update", "reference_station", "checksum"};
         std::map<string, string> splitData;
-        
-        std::map<string, string> split(String data)
-        {
-            size_t position = data.indexOf(",");
-            String term;
-            int termCount = 0;
 
+        const static int BUFFER_SIZE = 250;
+        char buffer[BUFFER_SIZE];
+
+        std::map<string, string> split(string data)
+        {
+            size_t position = data.find(",");
+            string term;
+            int termCount = 0;
             while (position != -1)
             {
-                if (position == 0) {
-                    term = "null";
-                }
-                else {
-                    term = data.substring(0, position);
-                }
-
-                splitData[GPGGAFormat[termCount]] = term.c_str();
-                data = data.substring(position+1);		
-                position = data.indexOf(",");
+                if (position == 0) term = "null";
+                else term = data.substr(0, position);
+                splitData[GPGGAFormat[termCount]] = term;
+                data = data.substr(position+1);
+                position = data.find(",");
                 termCount++;
             }
+
             return splitData;
         }
 
-        double translate_latitude(string rawLatitude, string direction){
+        float translate_latitude(string nmeaLatitude, string direction){
             //rawLatitude gives data in degree/minutes, as ddmm.mmmm, needs to be converted to GPS coordinates
-            String nmeaLatitude = rawLatitude.c_str();
-            if (nmeaLatitude.equals("")) return 0.00;
-            int degrees = nmeaLatitude.substring(0, 2).toInt();
-            double minutes = nmeaLatitude.substring(2).toFloat();
+            if (nmeaLatitude.compare("") == 0) return 0.00;
 
-            double gpsLatitude = degrees + (minutes / 60);
-            int directionMultiplier = (direction == "E") ? 1 : -1;
+            string stringDegrees = nmeaLatitude.substr(0, 2);
+            int degrees = atoi(stringDegrees.c_str());
+            const char* stringMinutes = nmeaLatitude.substr(2).c_str();
+            float minutes = atof(stringMinutes);
+            float gpsLatitude = degrees + (minutes / 60);
+            int directionMultiplier = (direction == "N") ? 1 : -1;
             
             return gpsLatitude*directionMultiplier;
         }
 
-        double translate_longitude(string rawLongitude, string direction){
-            String nmeaLongitude = rawLongitude.c_str();
-            if (nmeaLongitude.equals("")) return 0.00;
-            int degrees = nmeaLongitude.substring(0, 3).toInt();
-            double minutes = nmeaLongitude.substring(3).toFloat();
+        float translate_longitude(string nmeaLongitude, string direction){
+            if (nmeaLongitude.compare("")  == 0) return 0.00;
 
-            double gpsLongitude = degrees + (minutes/60);
-            int directionMultiplier = (direction == "S") ? 1 : -1;
+            string stringDegrees = nmeaLongitude.substr(0, 3);
+            int degrees = atoi(stringDegrees.c_str());
+            const char* stringMinutes = nmeaLongitude.substr(3).c_str();
+            float minutes = atof(stringMinutes);
+            float gpsLongitude = degrees + (minutes/60);
+            int directionMultiplier = (direction == "E") ? 1 : -1;
             
             return gpsLongitude*directionMultiplier;
         }
-        
-        bool pinged()
-        {
-            return (GPSSerial.available() > 0);
-        };
+
+        string readData(){
+            string data;
+            int feed_length = GPSSerial.readBytesUntil('\n', buffer, BUFFER_SIZE);
+
+            for(int i = 0; i < feed_length; i++){
+                data += buffer[i];
+            }
+
+            return data;
+        }
 
     public:
         void initialize()
@@ -79,21 +85,21 @@ class PA1616S
 
         void update()
         {
-            if (pinged()){
-                String data = GPSSerial.readStringUntil('\n');
-                if (data.substring(0, 6) == "$GPGGA")
+            string data = readData();
+            if (data.length() >= 6){
+                if (data.substr(0, 6) == "$GPGGA")
                 {
                     splitData = split(data);
-                    if (splitData.size() < 6) return;
                 }
+                return;
             }
         }
 
-        double getLongitude(){
+        float getLongitude(){
             return translate_longitude(splitData["longitude"], splitData["longitude_direction"]);
         }
 
-        double getLatitude(){
+        float getLatitude(){
             return translate_latitude(splitData["latitude"], splitData["latitude_direction"]);
         }
 };
