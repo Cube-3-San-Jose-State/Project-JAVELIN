@@ -1,37 +1,43 @@
 #pragma once
 #include <SoftwareSerial.h>
-#include <Wire.h>
-
-#define RX_pin 12
-#define TX_pin 13
+#include <Arduino.h>
 
 namespace CanSat
 {
-    SoftwareSerial receiverSerial(RX_pin, TX_pin);
-    String c = "";
+    class XBEE
+    {
+        private:
+            uint8_t RX_pin;
+            uint8_t TX_pin;
+            SoftwareSerial *XBEE_Serial;
+            int Baudrate = 9600;
+            String message = "";
 
-        void Initialize()
-        {
-            Serial.begin(9600);
-            receiverSerial.begin(9600);
-            
-        }
-
-        void transmitData()
-        {
-            if (Serial.available())
+        public:
+            XBEE(int rx_pin_, int tx_pin_) : RX_pin(rx_pin_), TX_pin(tx_pin_)
             {
-                receiverSerial.write(Serial.read());
+                XBEE_Serial = new SoftwareSerial(RX_pin, TX_pin);
             }
-        }
 
-        void receiveData()
-        {
-            if (receiverSerial.available() > 0)
+            String receiveData()
             {
-                c = receiverSerial.readString();
-                Serial.println(c);
-                receiverSerial.println(c);
+                if (XBEE_Serial->available())
+                {
+                    message = XBEE_Serial->readString();
+                }
+                return message;
             }
-        }
+
+            void transmitData(String data)
+            {
+                XBEE_Serial->print(data);
+                
+            }
+
+            void Initialize(int baudrate_)
+            {
+                Baudrate = baudrate_;
+                XBEE_Serial->begin(Baudrate);
+            }
+    };
 }
