@@ -7,7 +7,7 @@ namespace CanSat
     class MissionControlHandler
     {
     public:
-        std::string CreateGETRequestParameterWithRoverStatus(Container_Data data)
+        std::string CansatContainerData(Container_Data data)
         {
             char request_parameter[200];
             snprintf(
