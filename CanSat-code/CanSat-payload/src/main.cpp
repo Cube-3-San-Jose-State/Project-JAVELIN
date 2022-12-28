@@ -1,18 +1,17 @@
 #include <Arduino.h>
-#include "lib/MiniSpyCamera.hpp"
-#include "lib/MPL3115A.hpp"
-#include "lib/MPU6050.hpp"
-#include "lib/XBEE.hpp"
+#include "../lib/mission-control-handler.hpp"
 
-MiniSpyCamera camera(2);
-MPL3115A barometer;
-MPU6050 IMU;
-XBEE xbee_transmitter(12, 13);
+using namespace CanSat;
+
+MissionControlHandler mission_control_handler;
 
 void setup() {
+    Serial.begin(9600);
 
 }
 
 void loop() {
+    Serial.println("Hello World");
+    delay(1000);
 
 }
