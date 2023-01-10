@@ -78,7 +78,7 @@ class PA1616S
         }
 
     public:
-        void initialize()
+        void Initialize()
         {
             GPSSerial.begin(9600);
         };

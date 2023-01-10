@@ -1,5 +1,6 @@
-#include <Wire.h>
 #include <map>
+#include <Wire.h>
+// #include <Arduino.h>
 
 #define DEVICE_ADDRESS 0x60
 #define CONTROL_REGISTER 0x26
@@ -28,7 +29,7 @@
 class MPL3115A
 {
     private:
-        std::map<string, int> data;
+        std::map<String, int> data;
         float pressure;
         float altitude;
         float temperature;
@@ -80,7 +81,7 @@ class MPL3115A
 
 
     public:
-        void initialize()
+        void Initialize()
         {
             Wire.begin();
 

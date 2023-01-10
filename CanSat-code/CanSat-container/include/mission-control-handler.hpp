@@ -1,5 +1,4 @@
 #pragma once
-#include <string>
 #include "../include/container-dto.hpp"
 
 namespace CanSat
@@ -7,7 +6,7 @@ namespace CanSat
     class MissionControlHandler
     {
     public:
-        std::string CansatContainerData(Container_Data data)
+        String CansatContainerData(Container_Data data)
         {
             char request_parameter[200];
             snprintf(
