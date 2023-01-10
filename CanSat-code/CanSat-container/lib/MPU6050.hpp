@@ -1,7 +1,8 @@
 #pragma once
 #include <Wire.h>
+#include <Arduino.h>
 
-namespace drivware
+namespace CanSat
 {
 
     class MPU6050
