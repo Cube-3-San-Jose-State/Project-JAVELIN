@@ -12,31 +12,32 @@ using namespace CanSat;
 ModeSelect mode_select;
 MissionControlHandler mission_control_handler;
 Container_Data container_data;
-MPL3115A barometer;
-MPU6050 IMU;
+MPL3115A barometer(18, 19);
+MPU6050 IMU(17, 16);
 PA1616S GPS;
 XBEE xbee(2, 3);
-String Json_data = "";
+String json_data = "";
 
 
 Container_Data ReadAllSensors(Container_Data container_data){
     // Read all sensors
-    barometer.update();
-    IMU.ReadMPU();
-    GPS.update();
-
-    container_data.imu_data.acceleration_x = IMU.GetAccel().x;
-    container_data.imu_data.acceleration_y = IMU.GetAccel().y;
-    container_data.imu_data.acceleration_z = IMU.GetAccel().z;
-    container_data.imu_data.gyro_x = IMU.GetGyro().x;
-    container_data.imu_data.gyro_y = IMU.GetGyro().y;
-    container_data.imu_data.gyro_z = IMU.GetGyro().z;
+    barometer.Update();
+    IMU.Update();
+    GPS.Update();
     
-    container_data.gps_data.latitude = GPS.getLatitude();
-    container_data.gps_data.longitude = GPS.getLongitude();
-    container_data.barometer_data.temperature = barometer.getTemperature();
-    container_data.barometer_data.pressure = barometer.getPressure();
-    container_data.barometer_data.altitude = barometer.getAltitude();
+
+    container_data.imu_data.acceleration_x = IMU.GetAccelerometer().x;
+    container_data.imu_data.acceleration_y = IMU.GetAccelerometer().y;
+    container_data.imu_data.acceleration_z = IMU.GetAccelerometer().z;
+    container_data.imu_data.gyro_x = IMU.GetGyroscope().x;
+    container_data.imu_data.gyro_y = IMU.GetGyroscope().y;
+    container_data.imu_data.gyro_z = IMU.GetGyroscope().z;
+    
+    container_data.gps_data.latitude = GPS.GetLatitude();
+    container_data.gps_data.longitude = GPS.GetLongitude();
+    container_data.barometer_data.temperature = barometer.GetTemperature();
+    container_data.barometer_data.pressure = barometer.GetPressure();
+    container_data.barometer_data.altitude = barometer.GetAltitude();
 
     return container_data;
 }
@@ -48,14 +49,14 @@ void setup() {
     IMU.Initialize();
     GPS.Initialize();
     xbee.Initialize(9600);
-
 }
 
 void loop() {
     container_data = ReadAllSensors(container_data);
     container_data = mode_select.SelectMode(container_data);
-    Json_data = mission_control_handler.CansatContainerData(container_data);
-    xbee.transmitData(Json_data);
-    delay(1000);
+    json_data = mission_control_handler.CansatContainerData(container_data);
+
+    xbee.transmitData(json_data);
+    delay(100);
 }
 
