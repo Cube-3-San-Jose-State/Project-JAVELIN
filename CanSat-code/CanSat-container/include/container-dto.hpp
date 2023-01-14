@@ -14,7 +14,6 @@ namespace CanSat
     struct Barometer_Data
     {
         float altitude;
-        float pressure;
         float temperature;
     };
 

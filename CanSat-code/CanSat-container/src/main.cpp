@@ -36,9 +36,7 @@ Container_Data ReadAllSensors(Container_Data container_data){
     container_data.gps_data.latitude = GPS.GetLatitude();
     container_data.gps_data.longitude = GPS.GetLongitude();
     container_data.barometer_data.temperature = barometer.GetTemperature();
-    container_data.barometer_data.pressure = barometer.GetPressure();
     container_data.barometer_data.altitude = barometer.GetAltitude();
-
     return container_data;
 }
 
@@ -54,8 +52,8 @@ void setup() {
 void loop() {
     container_data = ReadAllSensors(container_data);
     container_data = mode_select.SelectMode(container_data);
-    json_data = mission_control_handler.CansatContainerData(container_data);
 
+    json_data = mission_control_handler.CansatContainerData(container_data);
     xbee.transmitData(json_data);
     delay(100);
 }
