@@ -8,9 +8,9 @@ namespace CanSat
     public:
         String CansatContainerData(Container_Data data)
         {
-            char request_parameter[200];
+            char request_parameter[500];
             snprintf(
-                request_parameter, 200, kGETRequestFormat,
+                request_parameter, 500, kResponseBodyFormat,
                 data.id, data.heartbeat_count, data.is_operational, data.payload_deployed, data.flight_mode, data.air_speed, data.gps_data.latitude, data.gps_data.longitude, 
                 data.barometer_data.altitude, data.barometer_data.temperature, data.imu_data.acceleration_x, 
                 data.imu_data.acceleration_y, data.imu_data.acceleration_z, data.imu_data.gyro_x, data.imu_data.gyro_y, data.imu_data.gyro_z, data.battery_data.voltage);

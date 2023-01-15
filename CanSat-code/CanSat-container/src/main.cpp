@@ -17,14 +17,15 @@ MPU6050 IMU(17, 16);
 PA1616S GPS;
 XBEE xbee(2, 3);
 String json_data = "";
-
+int heartbeat = 0;
 
 Container_Data ReadAllSensors(Container_Data container_data){
     // Read all sensors
     barometer.Update();
     IMU.Update();
     GPS.Update();
-    
+
+    container_data.heartbeat_count = ++heartbeat;
 
     container_data.imu_data.acceleration_x = IMU.GetAccelerometer().x;
     container_data.imu_data.acceleration_y = IMU.GetAccelerometer().y;
@@ -47,13 +48,17 @@ void setup() {
     IMU.Initialize();
     GPS.Initialize();
     xbee.Initialize(9600);
+
+    container_data.id = 'C';
+    container_data.flight_mode = 'D';
+    container_data.battery_data.voltage = 0;
 }
 
 void loop() {
     container_data = ReadAllSensors(container_data);
     container_data = mode_select.SelectMode(container_data);
-
     json_data = mission_control_handler.CansatContainerData(container_data);
+    Serial.println(json_data);
     xbee.transmitData(json_data);
     delay(100);
 }
