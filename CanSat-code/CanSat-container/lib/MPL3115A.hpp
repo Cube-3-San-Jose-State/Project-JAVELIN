@@ -5,8 +5,9 @@
 #define DEVICE_ADDRESS 0x60
 #define CONTROL_REGISTER 0x26
 #define DATA_REGISTER 0x13
-#define SELECT_DATA_REGISTER 0x00
-
+#define STATUS 0x00
+#define PRESSURE_MSB 0x01
+#define TEMPERATURE_MSB 0x04
 #define DATA_READY 0x07
 #define ALTIMETER_MODE 0xB9
 #define BAROMETER_MODE 0x39
@@ -30,113 +31,85 @@ namespace CanSat{
     class MPL3115A
     {
         private:
-            struct barometer_data{
-                byte status;
-                byte altitude_msb1;
-                byte altitude_msb;
-                byte altitude_lsb;
-                byte temperature_msb;
-                byte temperature_lsb;
-                byte pressure_msb1;
-                byte pressure_msb;
-                byte pressure_lsb;
-                
-            };
-            barometer_data barometer_data;
-            float pressure;
-            float altitude;
-            float temperature;
-            
-            void RequestAltimeterFromWire()
-            {
+            float altitude = 0.0;
+            float temperature = 0.0;
+            byte readByte(byte address){
                 Wire.beginTransmission(DEVICE_ADDRESS);
-                Wire.write(CONTROL_REGISTER);
-                Wire.write(ALTIMETER_MODE);
-                Wire.endTransmission();
-
+                Wire.write(address);
+                Wire.endTransmission(false);
+                Wire.requestFrom(DEVICE_ADDRESS, 1);
+                return Wire.read();
+            }
+            void writeByte(byte address, byte value){
                 Wire.beginTransmission(DEVICE_ADDRESS);
-                Wire.write(SELECT_DATA_REGISTER);
-                Wire.endTransmission();
-
-                Wire.requestFrom(DEVICE_ADDRESS, 6);
-                if(Wire.available() == 6)
-                {
-                    barometer_data.status = Wire.read();
-                    barometer_data.altitude_msb1 = Wire.read();
-                    barometer_data.altitude_msb = Wire.read(); // msb = most significant byte
-                    barometer_data.altitude_lsb = Wire.read(); // lsb = least significant byte
-                    barometer_data.temperature_msb  = Wire.read();
-                    barometer_data.temperature_lsb = Wire.read();
-                }
+                Wire.write(address);
+                Wire.write(value);
+                Wire.endTransmission(true);
             }
 
-            void RequestBarometerFromWire()
-            {   
-                Wire.beginTransmission(DEVICE_ADDRESS);
-                Wire.write(CONTROL_REGISTER);
-                Wire.write(BAROMETER_MODE);
-                Wire.endTransmission();
+            void toggleOneShot(){ //clears settings, allowing for faster reading times
+                byte currentSetting = readByte(CONTROL_REGISTER);
+                currentSetting &= ~(1<<1);
+                writeByte(CONTROL_REGISTER, currentSetting);
 
-                Wire.beginTransmission(DEVICE_ADDRESS);
-                Wire.write(SELECT_DATA_REGISTER);
-                Wire.endTransmission();
-
-                Wire.requestFrom(DEVICE_ADDRESS, 4);
-                if (Wire.available() == 4)
-                {
-                    barometer_data.status = Wire.read();
-                    barometer_data.pressure_msb1 = Wire.read();
-                    barometer_data.pressure_msb = Wire.read();
-                    barometer_data.pressure_lsb = Wire.read();
-                }
-
+                currentSetting = readByte(CONTROL_REGISTER);
+                currentSetting |= (1<<1);
+                writeByte(CONTROL_REGISTER, currentSetting);
             }
-
 
         public:
             MPL3115A(int sda, int scl){
                 Wire.setSDA(sda);
                 Wire.setSCL(scl);
-            } 
+            };
 
-            void Initialize()
-            {
+            void Initialize(){
                 Wire.begin();
 
+                byte altimeterMode = readByte(CONTROL_REGISTER);
+                altimeterMode |= (1<<7);
+                writeByte(CONTROL_REGISTER, altimeterMode);
+            };
+
+            void Update(){
+                toggleOneShot(); //toggle on
+                // Update Altimeter
                 Wire.beginTransmission(DEVICE_ADDRESS);
-                Wire.write(CONTROL_REGISTER);
-                Wire.write(ALTIMETER_MODE);
-                Wire.endTransmission();
+                Wire.write(PRESSURE_MSB);
+                Wire.endTransmission(false);
+                Wire.requestFrom(DEVICE_ADDRESS, 3);
+                
+                int counter = 0;
+                byte altitude_msb, altitude_csb, altitude_lsb;
+                altitude_msb = Wire.read();
+                altitude_csb = Wire.read();
+                altitude_lsb = Wire.read();
+                
+                toggleOneShot(); //toggle off
+
+                float tempcsb = (altitude_lsb >> 4) / 16.0;
+                altitude = (float)( (altitude_msb << 8) | altitude_csb ) + tempcsb;
+
+                toggleOneShot(); //toggle on
 
                 Wire.beginTransmission(DEVICE_ADDRESS);
-                Wire.write(CONTROL_REGISTER);
-                Wire.write(DATA_READY);
-                Wire.endTransmission();
+                Wire.write(TEMPERATURE_MSB);
+                Wire.endTransmission(false);
+                Wire.requestFrom(DEVICE_ADDRESS, 2);
+
+                byte temperature_msb, temperature_lsb;
+                temperature_msb = Wire.read();
+                temperature_lsb = Wire.read();
+
+                float templsb = (temperature_lsb >> 4 ) / 16.0;
+                temperature = (float)(temperature_msb + templsb);
             }
 
-            void Update() {
-                RequestAltimeterFromWire();
-                RequestBarometerFromWire();
-
-                //converting data to 20-bits 
-                int tempAlt = (((long)(barometer_data.altitude_msb1 * (long)65536) + (barometer_data.altitude_msb * 256) + (barometer_data.altitude_lsb & 0xF0)) / 16);
-                altitude = tempAlt / 16.0;
-                temperature = (((barometer_data.temperature_msb * 256)+(barometer_data.temperature_lsb)) / 256.0) * 1.8 + 32; //in fahrenheit
-                pressure = (((long)barometer_data.pressure_msb1*(long)65536) + (barometer_data.pressure_msb*256) + (barometer_data.pressure_lsb & 0xF0)) / 64000;
-            }
-            
-            float GetPressure()
-            {
-                return pressure;
-            }
-
-            float GetAltitude()
-            {
+            float GetAltitude(){
                 return altitude;
             }
 
-            float GetTemperature()
-            {
+            float GetTemperature(){
                 return temperature;
             }
     };
