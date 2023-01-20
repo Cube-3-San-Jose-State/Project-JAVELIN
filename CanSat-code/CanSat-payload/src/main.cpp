@@ -8,7 +8,7 @@
 
 using namespace CanSat;
 
-MPL3115A barometer(18, 19);
+MPL3115A barometer;
 MPU6050 IMU(17, 16);
 MiniSpyCamera camera(41);
 XBEE transmitter(7, 8);
@@ -31,8 +31,8 @@ Payload_Data ReadAllSensors(Payload_Data payload_data){
     payload_data.imu_data.pitch = IMU.GetAttitude().pitch;
     payload_data.imu_data.roll = IMU.GetAttitude().roll;
     
-    payload_data.barometer_data.temperature = barometer.GetTemperature();
-    payload_data.barometer_data.altitude = barometer.GetAltitude();
+    payload_data.barometer_data.temperature = barometer.GetData().temperature;
+    payload_data.barometer_data.altitude = barometer.GetData().altitude;
     return payload_data;
 }
 
