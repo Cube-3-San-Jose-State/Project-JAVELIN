@@ -4,12 +4,6 @@
 #include "../lib/ParachuteServo.hpp"
 #include "../lib/PayloadServo.hpp"
 
-ParachuteServo parachuteServo(36);
-PayloadServo payloadServo(37);
-
-#define PARACHUTE_DEPLOY_ALTITUDE 400
-#define PARACHUTE_DEPLOY_SAMPLE_COUNT 7
-
 namespace CanSat
 {
     class CanSatModes
@@ -29,17 +23,6 @@ namespace CanSat
 
         static Container_Data CanSatDeployed(Container_Data container_data) // flight mode 'D'
         {            
-            if (container_data.barometer_data.altitude < PARACHUTE_DEPLOY_ALTITUDE) {
-                parachuteThresholdMetCounter++;
-            } 
-            else {
-                parachuteThresholdMetCounter = 0;
-            }
-
-            if (parachuteThresholdMetCounter > PARACHUTE_DEPLOY_SAMPLE_COUNT){
-                container_data.flight_mode = 'S';
-            }
-
             return container_data;
         }
 
@@ -50,8 +33,6 @@ namespace CanSat
 
         static Container_Data PayloadDeploy(Container_Data container_data) // flight mode 'P'
         {
-            payloadServo.ReleasePayload();
-            container_data.flight_mode = 'A';
             return container_data;
         }
 
