@@ -45,32 +45,32 @@ namespace CanSat{
 
             MPU6050(int sda, int scl)
             {
-                Wire1.setSCL(scl);
-                Wire1.setSDA(sda);
+                Wire.setSCL(scl);
+                Wire.setSDA(sda);
             }
 
             void Initialize()
             {
-                Wire1.begin();
-                Wire1.beginTransmission(MPU_ADDRESS);
-                Wire1.write(PWR_MGMT_1); // PWR_MGMT_1 register
-                Wire1.write(0x00); // set to zero (wakes up the MPU-6050)
-                Wire1.endTransmission(true);
+                Wire.begin();
+                Wire.beginTransmission(MPU_ADDRESS);
+                Wire.write(PWR_MGMT_1); // PWR_MGMT_1 register
+                Wire.write(0x00); // set to zero (wakes up the MPU-6050)
+                Wire.endTransmission(true);
             }
 
             void Update()
             {
-                Wire1.beginTransmission(MPU_ADDRESS);
-                Wire1.write(ACCEL_XOUT_H); // starting with register 0x3B (ACCEL_XOUT_H)
-                Wire1.endTransmission(false);
-                Wire1.requestFrom(MPU_ADDRESS, 14, true); // request a total of 14 registers
-                accel.x = Wire1.read() << 8 | Wire1.read(); // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)
-                accel.y = Wire1.read() << 8 | Wire1.read(); // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
-                accel.z = Wire1.read() << 8 | Wire1.read(); // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
-                temp_holder = Wire1.read() << 8 | Wire1.read(); // 0x41 (TEMP_OUT_H) & 0x42 (TEMP_OUT_L)
-                gyro.x = Wire1.read() << 8 | Wire1.read(); // 0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
-                gyro.y = Wire1.read() << 8 | Wire1.read(); // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
-                gyro.z = Wire1.read() << 8 | Wire1.read(); // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
+                Wire.beginTransmission(MPU_ADDRESS);
+                Wire.write(ACCEL_XOUT_H); // starting with register 0x3B (ACCEL_XOUT_H)
+                Wire.endTransmission(false);
+                Wire.requestFrom(MPU_ADDRESS, 14, true); // request a total of 14 registers
+                accel.x = Wire.read() << 8 | Wire.read(); // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)
+                accel.y = Wire.read() << 8 | Wire.read(); // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
+                accel.z = Wire.read() << 8 | Wire.read(); // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
+                temp_holder = Wire.read() << 8 | Wire.read(); // 0x41 (TEMP_OUT_H) & 0x42 (TEMP_OUT_L)
+                gyro.x = Wire.read() << 8 | Wire.read(); // 0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
+                gyro.y = Wire.read() << 8 | Wire.read(); // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
+                gyro.z = Wire.read() << 8 | Wire.read(); // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
             }
 
             accelerometer GetAccelerometer()

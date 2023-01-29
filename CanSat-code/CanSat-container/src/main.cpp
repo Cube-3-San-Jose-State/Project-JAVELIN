@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "../lib/MPL3115A.hpp"
+#include "../lib/MPL3115A2.hpp"
 #include "../lib/MPU6050.hpp"
 #include "../lib/PA1616S.hpp"
 #include "../lib/XBEE.hpp"
@@ -12,8 +12,8 @@ using namespace CanSat;
 ModeSelect mode_select;
 MissionControlHandler mission_control_handler;
 Container_Data container_data;
-MPL3115A barometer(18, 19);
-MPU6050 IMU(17, 16);
+MPL3115A2 barometer(17, 16);
+MPU6050 IMU(18, 19);
 PA1616S GPS;
 XBEE xbee(2, 3);
 String json_data = "";
@@ -36,8 +36,9 @@ Container_Data ReadAllSensors(Container_Data container_data){
     
     container_data.gps_data.latitude = GPS.GetLatitude();
     container_data.gps_data.longitude = GPS.GetLongitude();
-    container_data.barometer_data.temperature = barometer.GetTemperature();
-    container_data.barometer_data.altitude = barometer.GetAltitude();
+    container_data.barometer_data.temperature = barometer.GetData().temperature;
+    container_data.barometer_data.altitude = barometer.GetData().altitude;
+
     return container_data;
 }
 
