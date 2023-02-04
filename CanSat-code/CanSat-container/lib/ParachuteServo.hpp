@@ -18,8 +18,11 @@ namespace CanSat
                 open = true;
             }
             
-            boolean isOpen(){
+            bool isOpen(){
                 return open;
-            }            
+            }       
+            int getPosition(){
+                return position;
+            }
     };
 } 
