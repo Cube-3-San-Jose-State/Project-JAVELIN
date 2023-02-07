@@ -59,6 +59,7 @@ void loop() {
     container_data = mode_select.SelectMode(container_data);
     json_data = mission_control_handler.CansatContainerData(container_data);
     Serial.println(json_data);
+    xbee.transmitData("From Container: \n");
     xbee.transmitData(json_data);
     delay(100);
 }
