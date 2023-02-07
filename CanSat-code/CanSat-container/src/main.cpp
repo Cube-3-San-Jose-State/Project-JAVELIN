@@ -15,7 +15,7 @@ Container_Data container_data;
 MPL3115A barometer(18, 19);
 MPU6050 IMU(17, 16);
 PA1616S GPS;
-XBEE xbee(2, 3);
+XBEE xbee(14, 15);
 String json_data = "";
 int heartbeat = 0;
 
