@@ -3,6 +3,9 @@
 #include "../include/container-dto.hpp"
 #include "../include/cansat-modes.hpp"
 
+/*
+    Goal: Check if sensor data has surpassed threhold, and if so move to next mode (eg: if altitude > threshold, move to next mode)
+*/
 namespace CanSat
 {
     class ModeSelect
@@ -23,12 +26,6 @@ namespace CanSat
                 break;
             case 'S':
                 return CanSatModes::ParachuteDeploy(container_data);
-                break;
-            case 'P':
-                return CanSatModes::PayloadDeploy(container_data);
-                break;
-            case 'A':
-                return CanSatModes::PayloadLanding(container_data);
                 break;
             case 'G':
                 return CanSatModes::Land(container_data);

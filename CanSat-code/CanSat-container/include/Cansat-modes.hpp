@@ -15,6 +15,11 @@ PayloadServo payloadServo(37);
 
 int accelY = 0;
 
+/*
+    Goal: Check threshold and switch mode 
+    Update each sensor required
+*/
+
 namespace CanSat
 {
     class CanSatModes
@@ -58,16 +63,6 @@ namespace CanSat
         }
 
         static Container_Data ParachuteDeploy(Container_Data container_data) // flight mode 'S'
-        {
-            return container_data;
-        }
-
-        static Container_Data PayloadDeploy(Container_Data container_data) // flight mode 'P'
-        {
-            return container_data;
-        }
-
-        static Container_Data PayloadLanding(Container_Data container_data) // flight mode 'A'
         {
             return container_data;
         }

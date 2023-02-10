@@ -4,6 +4,7 @@
 #include "../lib/PA1616S.hpp"
 #include "../lib/XBEE.hpp"
 #include "../include/mission-control-handler.hpp"
+#include "../include/rules-engine.hpp"
 #include "../include/mode-select.hpp"
 #include "../include/container-dto.hpp"
 
@@ -12,10 +13,12 @@ using namespace CanSat;
 ModeSelect mode_select;
 MissionControlHandler mission_control_handler;
 Container_Data container_data;
+
+XBEE xbee(2, 3);
 MPL3115A2 barometer(17, 16);
 MPU6050 IMU(18, 19);
+RulesEngine rules_engine(xbee);
 PA1616S GPS;
-XBEE xbee(2, 3);
 String json_data = "";
 int heartbeat = 0;
 
@@ -48,7 +51,7 @@ void setup() {
     barometer.Initialize();
     IMU.Initialize();
     GPS.Initialize();
-    xbee.Initialize(9600);
+    xbee.Initialize();
 
     container_data.id = 'C';
     container_data.flight_mode = 'D';
@@ -57,6 +60,7 @@ void setup() {
 
 void loop() {
     container_data = ReadAllSensors(container_data);
+    container_data = rules_engine.MainValidation(container_data);
     container_data = mode_select.SelectMode(container_data);
     json_data = mission_control_handler.CansatContainerData(container_data);
     Serial.println(json_data);
