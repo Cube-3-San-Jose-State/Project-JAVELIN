@@ -49,5 +49,6 @@ void setup() {
 void loop() {
     payload_data = ReadAllSensors(payload_data);
     json_data = mission_control_handler.JSONifyData(payload_data);
+    Serial.println(json_data);
     delay(100);
 }

@@ -61,6 +61,6 @@ void loop() {
     Serial.println(json_data);
     xbee.transmitData("From Container: \n");
     xbee.transmitData(json_data);
-    delay(100);
+    delay(1000);
 }
 
