@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "../lib/MPL3115A.hpp"
+#include "../lib/MPL3115A2.hpp"
 #include "../lib/MPU6050.hpp"
 #include "../lib/MiniSpyCamera.hpp"
 #include "../lib/XBEE.hpp"
@@ -8,8 +8,8 @@
 
 using namespace CanSat;
 
-MPL3115A barometer;
-MPU6050 IMU(17, 16);
+MPL3115A2 barometer(17, 16);
+MPU6050 IMU(18, 19);
 MiniSpyCamera camera(41);
 XBEE transmitter(7, 8);
 MissionControlHandler mission_control_handler;
@@ -22,6 +22,7 @@ Payload_Data ReadAllSensors(Payload_Data payload_data){
     // Read all sensors
     barometer.Update();
     IMU.Update();
+
     payload_data.imu_data.acceleration_x = IMU.GetAccelerometer().x;
     payload_data.imu_data.acceleration_y = IMU.GetAccelerometer().y;
     payload_data.imu_data.acceleration_z = IMU.GetAccelerometer().z;
@@ -44,10 +45,12 @@ void setup() {
     
     payload_data.id = 'P';
     payload_data.flight_mode = 'D';
+    payload_data.battery_data.voltage = 0;
 }
 
 void loop() {
     payload_data = ReadAllSensors(payload_data);
     json_data = mission_control_handler.JSONifyData(payload_data);
+    // Serial.println(json_data);
     delay(100);
 }

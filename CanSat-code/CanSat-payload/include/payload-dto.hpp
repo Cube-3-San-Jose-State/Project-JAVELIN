@@ -2,8 +2,8 @@
 
 namespace CanSat
 {
-    const char kResponseBodyFormat[] = "{\"ID\":\"%c\",\"HRB\":%d,\"ISO\":%d,\"FLM\":\"%c\",\"SPD\":%f,\"CAM\":%d,\"BAR\":[%f,%f,%f],\"IMU\":[%f,%f,%f,%f,%f,%f,%f,%f],\"BAT\":%f}\n";
-    const char kGETRequestFormat[] = "container?id=%c&heartbeat_count=%d&is_operational=%d&flight_mode=%c&air_speed=%f&camera_status=%d&altitude=%f&pressure=%f&temperature=%f&acceleration_x=%f&acceleration_y=%f&acceleration_z=%f&gyro_x=%f&gyro_y=%f&gyro_z=%f&gyro_pitch=%f&gyro_roll=%f&voltage=%f";
+    const char kResponseBodyFormat[] = "{\"ID\":\"%c\",\"HRB\":%d,\"ISO\":%d,\"FLM\":\"%c\",\"SPD\":%f,\"CAM\":%d,\"BAR\":[%f,%f],\"IMU\":[%f,%f,%f,%f,%f,%f,%f,%f],\"BAT\":%f}\n";
+    const char kGETRequestFormat[] = "container?id=%c&heartbeat_count=%d&is_operational=%d&flight_mode=%c&air_speed=%f&camera_status=%d&altitude=%f&temperature=%f&acceleration_x=%f&acceleration_y=%f&acceleration_z=%f&gyro_x=%f&gyro_y=%f&gyro_z=%f&gyro_pitch=%f&gyro_roll=%f&voltage=%f";
 
     struct Camera_Status
     {
@@ -13,7 +13,6 @@ namespace CanSat
     struct Barometer_Data
     {
         float altitude;
-        float pressure;
         float temperature;
     };
 
