@@ -27,9 +27,6 @@ namespace CanSat
             case 'P':
                 return CanSatModes::PayloadDeploy(container_data);
                 break;
-            //case 'F':
-                //return CanSatModes::SecondaryParachute(container_data);
-                //break;
             case 'A':
                 return CanSatModes::PayloadLanding(container_data);
                 break;

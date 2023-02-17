@@ -15,8 +15,14 @@ namespace CanSat
             
             void ReleaseParachute(){
                 servo.write(180);
+                open = true;
             }
-
             
+            bool isOpen(){
+                return open;
+            }       
+            int getPosition(){
+                return position;
+            }
     };
 } 

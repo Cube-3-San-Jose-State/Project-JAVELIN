@@ -34,6 +34,7 @@ namespace CanSat{
             {
                 float roll;
                 float pitch;
+                float yaw;
             };
 
             int16_t temp_holder;
@@ -84,8 +85,9 @@ namespace CanSat{
             }
 
             attitude GetAttitude(){
-                atti.roll = atan2(accel.y, accel.z) * 180/M_PI;
-                atti.pitch = atan2(-accel.x, sqrt(accel.y*accel.y + accel.z*accel.z)) * 180/M_PI;
+                atti.pitch = atan( accel.x / sqrt(accel.y*accel.y + accel.z*accel.z) );
+                atti.roll = atan( accel.y / sqrt(accel.x*accel.x + accel.z*accel.z) );
+                atti.yaw = atan( accel.z / sqrt(accel.x*accel.x + accel.z*accel.z) );
                 return atti;
             }
     };
