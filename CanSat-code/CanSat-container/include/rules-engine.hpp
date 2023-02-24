@@ -25,22 +25,6 @@ namespace CanSat
             Required validate function data:
                 confirm altitude
         */
-        // Container_Data Validate(Container_Data container_data)
-        // {
-        //     if (container_data.barometer_data.altitude < 0 && container_data.flight_mode == 'U') // Check the satellites status, and modify the sensor values if needed
-        //     {
-        //         container_data.barometer_data.altitude = 0;
-        //     }
-
-        //     if (container_data.flight_mode == 'D' && container_data.barometer_data.altitude <= parachute_deployment_altitude)
-        //     {
-        //         container_data.flight_mode = 'S'; // If we the cansat is deployed already and has reached the parachute deployment altitude, switch to parachute deployment mode
-        //     }
-
-        //     // if we are in PreFlight mode and we want to go to CanSatDeployed but have not transitioned to Launched mode we cannot go to CanSatDeployed
-
-        //     return container_data;
-        // }
 
         // THE RULES ENGINE INDIVIDUAL FUNCTIONS SHOULD ONLY RETURN BOOLEAN VALUES SO MAKE SURE WE ARE GETTING EXPECTED DATA
 
