@@ -8,34 +8,38 @@ namespace CanSat
     private:
         uint8_t RX_pin;
         uint8_t TX_pin;
-        SoftwareSerial *XBEE_Serial;
-        int Baudrate = 9600;
-        String message = "";
+        SoftwareSerial XBEE_Serial;
 
     public:
-        XBEE(int rx_pin_, int tx_pin_) : RX_pin(rx_pin_), TX_pin(tx_pin_)
+        XBEE(int rx_pin_, int tx_pin_) : RX_pin(rx_pin_), TX_pin(tx_pin_), XBEE_Serial(RX_pin, TX_pin)
         {
-            XBEE_Serial = new SoftwareSerial(RX_pin, TX_pin);
         }
 
         void Initialize(int baudrate_)
         {
-            Baudrate = baudrate_;
-            XBEE_Serial->begin(Baudrate);
+            XBEE_Serial.begin(baudrate_);
         }
 
         String receiveData()
         {
-            if (XBEE_Serial->available())
+            String message = "";
+            if (XBEE_Serial.available())
             {
-                message = XBEE_Serial->readString();
+                message = XBEE_Serial.readString();
             }
             return message;
         }
 
         void transmitData(String data)
         {
-            XBEE_Serial->print(data);
+            if (data.length() > 0 && data.length() <= 256)
+            {
+                XBEE_Serial.print(data);
+            }
+            else
+            {
+                Serial.println("Error: invalid data length");
+            }
         }
     };
 }
