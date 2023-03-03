@@ -9,19 +9,18 @@ namespace CanSat
         uint8_t RX_pin;
         uint8_t TX_pin;
         SoftwareSerial *XBEE_Serial;
-        int Baudrate = 9600;
         String message = "";
 
     public:
+        XBEE(){}
         XBEE(int rx_pin_, int tx_pin_) : RX_pin(rx_pin_), TX_pin(tx_pin_)
         {
             XBEE_Serial = new SoftwareSerial(RX_pin, TX_pin);
         }
 
-        void Initialize(int baudrate_)
+        void Initialize(int baudrate_=9600)
         {
-            Baudrate = baudrate_;
-            XBEE_Serial->begin(Baudrate);
+            XBEE_Serial->begin(baudrate_);
         }
 
         String receiveData()
