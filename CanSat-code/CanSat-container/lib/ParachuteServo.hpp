@@ -16,7 +16,5 @@ namespace CanSat
             void ReleaseParachute(){
                 servo.write(180);
             }
-
-            
     };
 } 

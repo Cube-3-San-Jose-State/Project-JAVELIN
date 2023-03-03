@@ -14,6 +14,20 @@
         accel GetAccelerometer() returns accel map { {'x': int16_t}, {'y': int16_t}, {'z': int_16t} }
         gyro GetGyroscope() returns gyro map { {'x': int16_t}, {'y': int16_t}, {'z': int_16t} }
 */
+
+/**
+ * @brief Code for IMU, gathering accelerometer and gyroscope data.
+ * 
+ * Constructor: MPL3115A accelerometer(int device_address);
+ * Public functions:
+ * void Initialize() - Sets up for wire transmissions
+ * void Update() - updates data so that get functions return updated values
+ * accel GetAccelerometer() returns accel map { {'x': int16_t}, {'y': int16_t}, {'z': int_16t} }
+ * gyro GetGyroscope() returns gyro map { {'x': int16_t}, {'y': int16_t}, {'z': int_16t} }
+ * 
+ * Reference/Credit: https://invensense.tdk.com/wp-content/uploads/2015/02/MPU-6000-Datasheet1.pdf, JohnChi on github.
+ * 
+ */
 namespace CanSat{
     class MPU6050
     {
@@ -84,8 +98,8 @@ namespace CanSat{
             }
 
             attitude GetAttitude(){
-                atti.roll = atan2(accel.y, accel.z) * 180/M_PI;
-                atti.pitch = atan2(-accel.x, sqrt(accel.y*accel.y + accel.z*accel.z)) * 180/M_PI;
+                atti.roll = atan2(accel.y, accel.z);
+                atti.pitch = atan2(-accel.x, sqrt(accel.y*accel.y + accel.z*accel.z));
                 return atti;
             }
     };

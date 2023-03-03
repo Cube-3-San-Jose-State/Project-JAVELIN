@@ -12,15 +12,26 @@
         getLatitude() - gets latitude in GPS coordinates
 */
 
+/**
+ * @brief GPS Module
+ * 
+ * Public functions:
+ * initialize() - begins GPS serial port
+ * update() - monitor for GPS coordinate changes
+ * getLongitude() - gets longitude in GPS coordinates
+ * getLatitude() - gets latitude in GPS coordinates
+ * 
+ */
 namespace CanSat{
     class PA1616S
     {
         private:
             std::vector<std::string> GPGGAFormat = { "code", "time_stamp", "latitude", "latitude_direction", "longitude", "longitude_direction", "quality", "satellite_count", "hdop", "altitude", "altitude_units", "geoid_separation", "geoid_separation_units", "seconds_since_update", "reference_station", "checksum"};
             std::map<std::string, std::string> splitData;
-
-            const static int BUFFER_SIZE = 250;
-            char buffer[BUFFER_SIZE];
+            
+            boolean newData = false;
+            static const int MAX_BUFFER = 250;
+            char receivedCharacters[MAX_BUFFER]; // array holder for incoming chars
 
             std::map<std::string, std::string> split(std::string data)
             {
@@ -67,18 +78,30 @@ namespace CanSat{
                 return gpsLongitude*directionMultiplier;
             }
 
-            std::string readData(){
-                std::string data;
-                int feed_length = GPSSerial.readBytesUntil('\n', buffer, BUFFER_SIZE);
+            void readData(){
+                static byte i = 0;
+                char currentCharacter;
+                int feed_length = 0;
 
-                for(int i = 0; i < feed_length; i++){
-                    data += buffer[i];
+                while (GPSSerial.available() > 0 && newData == false){ //here is what breaks stuff
+                    currentCharacter = GPSSerial.read();
+                    if (currentCharacter != '\n') {
+                        receivedCharacters[i] = currentCharacter;
+                        i++;
+                        if ( i >= MAX_BUFFER) i = MAX_BUFFER - 1;
+                    }
+                    else {
+                        receivedCharacters[i] = '\0';
+                        i = 0;
+                        newData = true;
+                    }
                 }
-
-                return data;
             }
 
         public:
+            PA1616S(){
+
+            }
             void Initialize()
             {
                 GPSSerial.begin(9600);
@@ -86,14 +109,18 @@ namespace CanSat{
 
             void Update()
             {
-                std::string data = readData();
-                if (data.length() >= 6){
-                    if (data.substr(0, 6) == "$GPGGA")
-                    {
-                        splitData = split(data);
-                    }
-                    return;
+                std::string data;
+                readData();
+                if (newData == true){
+                    data = receivedCharacters;
                 }
+                
+                if (data.length() >= 6 && data.substr(0, 6) == "$GPGGA"){
+                    splitData = split(receivedCharacters);
+                }
+                
+                Serial.println(data.c_str());
+
             }
 
             float GetLongitude(){
