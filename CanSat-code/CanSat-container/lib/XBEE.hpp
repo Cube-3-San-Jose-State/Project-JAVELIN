@@ -15,7 +15,7 @@ namespace CanSat
         {
         }
 
-        void Initialize(int baudrate_)
+        void Initialize(int baudrate_=9600)
         {
             XBEE_Serial.begin(baudrate_);
         }

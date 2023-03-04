@@ -97,26 +97,15 @@ namespace CanSat {
 			setOversampleRate(7);
 			enableEventFlags();
 			setModeActive();
+			
+			setModeAltimeter();
 		};
 
 		void Update(){
-			setModeStandby();
-			setModeBarometer();
-			setOversampleRate(7);
-			enableEventFlags();
-			setModeActive();   
-
-			barometer_data.pressure = (ReadPressure() + elevation_offset / 100);
-			barometer_data.temperature = ReadTemperature();
-
-			setModeStandby();
-			setModeAltimeter();
-			setOversampleRate(7);
-			enableEventFlags();
-			setModeActive();   
-
 			barometer_data.altitude = ReadAltitude();
+			barometer_data.temperature = ReadTemperature();
 		}
+		
 
 		data GetData(){
 			return barometer_data;
@@ -125,10 +114,8 @@ namespace CanSat {
 		float ReadAltitude(){
 			toggleOneShot(); 
 			int counter = 0;
-			while( (IIC_Read(STATUS) & MPL3115A2_REGISTER_STATUS_PDR ) == 0 ) {
-				if (++counter > 512) return(-999); 
-				delay(1);
-			}
+
+			if ( (IIC_Read(STATUS) & MPL3115A2_REGISTER_STATUS_PDR) == 0)  return barometer_data.altitude;
 
 			// Read altitude registers
 			Wire1.beginTransmission(MPL3115A2_ADDRESS);
@@ -140,12 +127,11 @@ namespace CanSat {
 			msb = Wire1.read();
 			csb = Wire1.read();
 			lsb = Wire1.read();
-
 			// The least significant bytes l_altitude and l_temp are 4-bit, fractional values, so you must cast the calulation in (float),
 			// shift the value over 4 spots to the right and divide by 16 (since there are 16 values in 4-bits). 
+
 			float tempcsb = (lsb>>4)/16.0;
 			float altitude = (float)( (msb << 8) | csb) + tempcsb;
-
 			return(altitude);
 		}
 
@@ -186,13 +172,7 @@ namespace CanSat {
 
 		float ReadTemperature(){
 			if((IIC_Read(STATUS) & (1<<1)) == 0) toggleOneShot(); //Toggle the OST bit causing the sensor to immediately take another reading
-
-			//Wait for TDR bit, indicates we have new temp data
-			int counter = 0;
-			while( (IIC_Read(STATUS) & MPL3115A2_REGISTER_STATUS_TDR ) == 0) {
-				if(++counter > 512) return(-999); //Error out after max of 512ms for a read
-				delay(1);
-			}
+			if ( (IIC_Read(STATUS) & MPL3115A2_REGISTER_STATUS_TDR) == 0) return barometer_data.temperature; //Returns if no new data
 
 			// Read temperature registers
 			Wire1.beginTransmission(MPL3115A2_ADDRESS);
