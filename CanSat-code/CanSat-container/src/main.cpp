@@ -14,7 +14,7 @@ ModeSelect mode_select;
 MissionControlHandler mission_control_handler;
 Container_Data container_data;
 
-XBEE xbee(2, 3);
+XBEE xbee(15, 14);
 MPL3115A2 barometer(17, 16);
 MPU6050 IMU(18, 19);
 PA1616S GPS;
@@ -71,6 +71,7 @@ void loop() {
     container_data = ReadAllSensors(container_data);
     container_data = rules_engine.MainValidation(container_data);
     container_data = mode_select.SelectMode(container_data);
+    
     json_data = mission_control_handler.FormatContainerData(container_data);
     Serial.println(json_data);
     xbee.transmitData(json_data);

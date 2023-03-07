@@ -23,11 +23,9 @@ namespace CanSat
             int expected_heartbeat_ = 0;
             char modes[5] = {'U', 'L', 'D', 'S', 'G'};
             int current_mode = 0;
-            XBEE to_groundcontrol;
         public:
             RulesEngine(XBEE &to_groundcontrol_)
             {
-                to_groundcontrol = to_groundcontrol_;
             }
 
             bool ValidateHeartbeatCount(Container_Data container_data)
@@ -35,7 +33,6 @@ namespace CanSat
 
                 if (container_data.heartbeat_count != expected_heartbeat_)
                 {
-                    to_groundcontrol.transmitData("Heartbeat is out of sync, resetting to 0 and establishing new heartbeat count");
                     container_data.heartbeat_count = 0;
                     expected_heartbeat_ = 0;
                     return false;
@@ -105,7 +102,6 @@ namespace CanSat
                 }
                 else
                 {
-                    to_groundcontrol.transmitData("Failed Validation!!!");
                     return container_data;
                 }
             }

@@ -119,8 +119,6 @@ namespace CanSat{
                     splitData = split(receivedCharacters);
                 }
                 
-                Serial.println(data.c_str());
-
             }
 
             float GetLongitude(){

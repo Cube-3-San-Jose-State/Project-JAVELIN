@@ -34,7 +34,7 @@ namespace CanSat
         {
             if (data.length() > 0 && data.length() <= 256)
             {
-                XBEE_Serial.print(data);
+                XBEE_Serial.write(data.c_str());
             }
             else
             {

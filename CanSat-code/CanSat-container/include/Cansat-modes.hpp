@@ -26,24 +26,6 @@ namespace CanSat
 
         static Container_Data Launched(Container_Data container_data) // flight mode 'L'
         {
-            // accelY = container_data.imu_data.acceleration_y * ACCEL_CONVERSION;
-
-            // if (accelY > CONTAINER_SAMPLE_ACCEL && container_data.barometer_data.altitude > CONTAINER_SAMPLE_ALTITUDE){
-            //     container_data.flight_mode = 'L';
-            // }
-
-            // int maxAlt = container_data.barometer_data.altitude;
-            // if (container_data.barometer_data.altitude < maxAlt){
-            //     altitudeCounter ++;
-            // }
-            // else {
-            //     altitudeCounter = 0;
-            // }
-
-            // if (altitudeCounter > ALTITUDE_SAMPLE_COUNT){
-            //     container_data.flight_mode = 'D';
-            // }
-
             return container_data;
         }
 
