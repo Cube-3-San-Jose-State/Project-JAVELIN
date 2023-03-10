@@ -24,7 +24,7 @@ namespace CanSat
             char modes[5] = {'U', 'L', 'D', 'S', 'G'};
             int current_mode = 0;
         public:
-            RulesEngine(XBEE &to_groundcontrol_)
+            RulesEngine()
             {
             }
 
