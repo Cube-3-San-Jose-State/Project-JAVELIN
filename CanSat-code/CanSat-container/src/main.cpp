@@ -14,11 +14,11 @@ ModeSelect mode_select;
 MissionControlHandler mission_control_handler;
 Container_Data container_data;
 
-XBEE xbee(15, 14);
+XBEE xbee(14, 15);
 MPL3115A2 barometer(17, 16);
 MPU6050 IMU(18, 19);
 PA1616S GPS;
-RulesEngine rules_engine(xbee);
+RulesEngine rules_engine;
 
 String json_data = "";
 int heartbeat = 0;
@@ -33,7 +33,7 @@ Container_Data ReadAllSensors(Container_Data container_data){
     // Update all sensors
     barometer.Update();
     IMU.Update();
-    // GPS.Update();
+    GPS.Update();
 
     container_data.heartbeat_count = ++heartbeat;
 
