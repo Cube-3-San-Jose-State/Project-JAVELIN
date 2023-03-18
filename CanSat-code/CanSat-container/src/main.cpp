@@ -19,7 +19,7 @@ MPL3115A2 barometer(17, 16);
 MPU6050 IMU(18, 19);
 PA1616S GPS;
 RulesEngine rules_engine;
-
+ParachuteServo parachute(36);
 String json_data = "";
 int heartbeat = 0;
 
@@ -64,7 +64,7 @@ void setup() {
     xbee.Initialize();
 
     container_data.id = 'C';
-    container_data.flight_mode = 'D';
+    container_data.flight_mode = 'U';
 }
 
 void loop() {
