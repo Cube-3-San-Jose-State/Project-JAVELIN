@@ -11,7 +11,7 @@ namespace CanSat
             "\"GPS\":[%lf,%lf],"
             "\"BAR\":[%f,%f],"
             "\"IMU\":[%d,%d,%d,%d,%d,%d,%f,%f]"
-        "}";
+        "}*";
 
     const char kGETRequestFormat[] = 
         "container?id=%c"
