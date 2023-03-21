@@ -23,8 +23,8 @@ namespace CanSat
     {
     private:
         int altitudeCounter = 0;
-        static int parachuteThresholdMetCounter;
-        static int stationaryCounter;
+        int parachuteThresholdMetCounter;
+        int stationaryCounter;
     public:
         Container_Data PreFlight(Container_Data container_data) // flight mode 'U'
         {
@@ -69,6 +69,7 @@ namespace CanSat
 
         Container_Data ParachuteDeploy(Container_Data container_data) // flight mode 'S'
         {
+            ParachuteServo parachute(36);
             parachute.ReleaseParachute();
 
             if (container_data.barometer_data.altitude <= container_data.barometer_data.altitude + 1 || container_data.barometer_data.altitude >= container_data.barometer_data.altitude -1) {
