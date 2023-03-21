@@ -3,7 +3,6 @@
 
 #define MAG_ADDRESS 0x1E
 #define MAG_CFG_REG_A 0x60
-#define MAG_CFG_REG_B 0x61
 #define MAG_CFG_REG_C 0x62
 #define MAG_OUTX_L_REG 0x68
 
@@ -12,7 +11,7 @@ namespace CanSat
     class LSM303AGR
     {
     private:
-        struct magneticField
+        struct MagneticField
         {
             float x;
             float y;
@@ -20,52 +19,50 @@ namespace CanSat
         };
 
     public:
-        magneticField magField;
+        MagneticField magField;
 
-        LSM303AGR() {}
-
-        void initialize()
-        {
-            Wire.begin();
-
-            Wire.beginTransmission(MAG_ADDRESS);
-            Wire.write(MAG_CFG_REG_A);
-            Wire.write(0x03); // Set magnetometer data rate to 10 Hz
-            Wire.endTransmission();
-
-            Wire.beginTransmission(MAG_ADDRESS);
-            Wire.write(MAG_CFG_REG_B);
-            Wire.write(0x20); // Set magnetometer full scale to +/- 49 gauss
-            Wire.endTransmission();
-
-            Wire.beginTransmission(MAG_ADDRESS);
-            Wire.write(MAG_CFG_REG_C);
-            Wire.write(0x00); // Set magnetometer to continuous conversion mode
-            Wire.endTransmission();
+        LSM303AGR(int sda, int scl) {
+            Wire2.setSDA(sda);
+            Wire2.setSCL(scl);
         }
 
-        void update()
+        void Initialize()
         {
-            Wire.beginTransmission(MAG_ADDRESS);
-            Wire.write(MAG_OUTX_L_REG | 0x80); // Set MSB to 1 for auto-increment
-            Wire.endTransmission();
-            Wire.requestFrom(MAG_ADDRESS, 6);
+            Wire2.begin();
 
-            int16_t x = (Wire.read() | (Wire.read() << 8));
-            int16_t y = (Wire.read() | (Wire.read() << 8));
-            int16_t z = (Wire.read() | (Wire.read() << 8));
+            Wire2.beginTransmission(MAG_ADDRESS);
+            Wire2.write(MAG_CFG_REG_A);
+            Wire2.write(0x00); // Set magnetometer data rate to 10 Hz
+            Wire2.endTransmission();
+
+            Wire2.beginTransmission(MAG_ADDRESS);
+            Wire2.write(MAG_CFG_REG_C);
+            Wire2.write(0x00); // Set magnetometer to continuous conversion mode
+            Wire2.endTransmission();
+        }
+
+        void Update()
+        {
+            Wire2.beginTransmission(MAG_ADDRESS);
+            Wire2.write(MAG_OUTX_L_REG | 0x80); // Set MSB to 1 for auto-increment
+            Wire2.endTransmission();
+            Wire2.requestFrom(MAG_ADDRESS, 6);
+
+            int16_t x = (Wire2.read() | (Wire2.read() << 8));
+            int16_t y = (Wire2.read() | (Wire2.read() << 8));
+            int16_t z = (Wire2.read() | (Wire2.read() << 8));
 
             magField.x = (float)x * (49.0 / 32768.0);
             magField.y = (float)y * (49.0 / 32768.0);
             magField.z = (float)z * (49.0 / 32768.0);
         }
 
-        magneticField getMagneticField()
+        MagneticField GetMagneticField()
         {
             return magField;
         }
 
-        float getHeading()
+        float GetHeading()
         {
             float heading = atan2(magField.y, magField.x) * 180.0 / M_PI;
             if (heading < 0)
