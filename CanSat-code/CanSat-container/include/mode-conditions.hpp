@@ -1,4 +1,5 @@
 #include "../include/container-dto.hpp"
+#include "../lib/ParachuteServo.hpp"
 #define PARACHUTE_DEPLOY_ALTITUDE 400
 #define PARACHUTE_DEPLOY_SAMPLE_COUNT 7
 #define CONTAINER_SAMPLE_ALTITUDE 10
@@ -8,6 +9,8 @@
 
 #define DEPLOYED_ALTITUDE_SAMPLE_COUNT 5
 #define ACCEL_CONVERSION 9.80665 / 16384
+
+#define STATIONARY_SAMPLE_COUNT 5
 
 /*
     Goal: Check threshold and switch mode 
@@ -20,6 +23,8 @@ namespace CanSat
     {
     private:
         int altitudeCounter = 0;
+        int parachuteThresholdMetCounter;
+        int stationaryCounter;
     public:
         Container_Data PreFlight(Container_Data container_data) // flight mode 'U'
         {
@@ -49,13 +54,34 @@ namespace CanSat
 
         Container_Data Deployed(Container_Data container_data) // flight mode 'D'
         {
+            if (container_data.barometer_data.altitude < PARACHUTE_DEPLOY_ALTITUDE) {
+                parachuteThresholdMetCounter++;
+            } 
+            else {
+                parachuteThresholdMetCounter = 0;
+            }
 
+            if (parachuteThresholdMetCounter > PARACHUTE_DEPLOY_SAMPLE_COUNT){
+                container_data.flight_mode = 'S';
+            }
             return container_data;
         }
 
         Container_Data ParachuteDeploy(Container_Data container_data) // flight mode 'S'
         {
+            ParachuteServo parachute(36);
+            parachute.ReleaseParachute();
 
+            if (container_data.barometer_data.altitude <= container_data.barometer_data.altitude + 1 || container_data.barometer_data.altitude >= container_data.barometer_data.altitude -1) {
+                stationaryCounter ++;
+            }
+            else {
+                stationaryCounter = 0;
+            }
+
+            if (stationaryCounter > STATIONARY_SAMPLE_COUNT) {
+                container_data.flight_mode = 'G';
+            }
             return container_data;
         }
 
