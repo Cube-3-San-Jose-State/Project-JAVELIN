@@ -2,6 +2,7 @@
 #include "../lib/MPL3115A2.hpp"
 #include "../lib/MPU6050.hpp"
 #include "../lib/PA1616S.hpp"
+#include "../lib/LSM303AGR.hpp"
 #include "../lib/XBEE.hpp"
 #include "../include/mission-control-handler.hpp"
 #include "../include/rules-engine.hpp"
@@ -14,9 +15,10 @@ ModeSelect mode_select;
 MissionControlHandler mission_control_handler;
 Container_Data container_data;
 
-XBEE xbee(14, 15);
-MPL3115A2 barometer(17, 16);
+XBEE Xbee(14, 15);
+MPL3115A2 Barometer(17, 16);
 MPU6050 IMU(18, 19);
+LSM303AGR Compass(25, 24);
 PA1616S GPS;
 RulesEngine rules_engine;
 ParachuteServo parachute(36);
@@ -31,9 +33,10 @@ int heartbeat = 0;
  */
 Container_Data ReadAllSensors(Container_Data container_data){
     // Update all sensors
-    barometer.Update();
+    Barometer.Update();
     IMU.Update();
     GPS.Update();
+    Compass.Update();
 
     container_data.heartbeat_count = ++heartbeat;
 
@@ -49,8 +52,13 @@ Container_Data ReadAllSensors(Container_Data container_data){
     container_data.gps_data.latitude = GPS.GetLatitude();
     container_data.gps_data.longitude = GPS.GetLongitude();
 
-    container_data.barometer_data.temperature = barometer.GetData().temperature;
-    container_data.barometer_data.altitude = barometer.GetData().altitude;
+    container_data.barometer_data.temperature = Barometer.GetData().temperature;
+    container_data.barometer_data.altitude = Barometer.GetData().altitude;
+
+    container_data.compass_data.magnet_x = Compass.GetMagneticField().x;
+    container_data.compass_data.magnet_y = Compass.GetMagneticField().y;
+    container_data.compass_data.magnet_z = Compass.GetMagneticField().z;
+
 
     return container_data;
 }
@@ -58,10 +66,11 @@ Container_Data ReadAllSensors(Container_Data container_data){
 
 void setup() {
     Serial.begin(9600);
-    barometer.Initialize();
+    Barometer.Initialize();
     IMU.Initialize();
     GPS.Initialize();
-    xbee.Initialize();
+    Compass.Initialize();
+    Xbee.Initialize();
 
     container_data.id = 'C';
     container_data.flight_mode = 'U';
@@ -74,7 +83,7 @@ void loop() {
     
     json_data = mission_control_handler.FormatContainerData(container_data);
     Serial.println(json_data);
-    xbee.transmitData(json_data);
+    Xbee.transmitData(json_data);
     delay(100);
 }
 

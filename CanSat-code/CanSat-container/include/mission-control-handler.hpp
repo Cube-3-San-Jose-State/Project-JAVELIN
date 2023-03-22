@@ -19,7 +19,7 @@ namespace CanSat
                 data.barometer_data.altitude, data.barometer_data.temperature, 
                 data.imu_data.acceleration_x, data.imu_data.acceleration_y, data.imu_data.acceleration_z, 
                 data.imu_data.gyro_x, data.imu_data.gyro_y, data.imu_data.gyro_z,
-                data.imu_data.pitch, data.imu_data.roll
+                data.imu_data.pitch, data.imu_data.roll, data.compass_data.magnet_x, data.compass_data.magnet_y, data.compass_data.magnet_z
             );
             return request_parameter;
         }

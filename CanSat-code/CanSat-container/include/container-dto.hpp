@@ -10,7 +10,8 @@ namespace CanSat
             "\"FLM\":\"%c\","
             "\"GPS\":[%lf,%lf],"
             "\"BAR\":[%f,%f],"
-            "\"IMU\":[%d,%d,%d,%d,%d,%d,%f,%f]"
+            "\"IMU\":[%d,%d,%d,%d,%d,%d,%f,%f],"
+            "\"MAG\":[%f,%f,%f]"
         "}*";
 
     const char kGETRequestFormat[] = 
@@ -46,6 +47,14 @@ namespace CanSat
         float roll;
     };
 
+    struct Compass_Data
+    {
+        float magnet_x;
+        float magnet_y;
+        float magnet_z;
+        float heading;
+    };
+
     struct Container_Data
     {
         char id;
@@ -55,6 +64,7 @@ namespace CanSat
         GPS_Data gps_data;
         Barometer_Data barometer_data;
         IMU_Data imu_data;
+        Compass_Data compass_data;
     };
 
 }
