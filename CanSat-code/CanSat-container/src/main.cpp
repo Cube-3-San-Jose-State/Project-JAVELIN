@@ -21,7 +21,6 @@ MPU6050 IMU(18, 19);
 LSM303AGR Compass(25, 24);
 PA1616S GPS;
 RulesEngine rules_engine;
-ParachuteServo parachute(36);
 String json_data = "";
 int heartbeat = 0;
 
