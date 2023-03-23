@@ -9,7 +9,7 @@
 
 #define PARACHUTE_ALTITUDE_THRESHOLD 6
 
-ParachuteServo parachute(36);
+
 
 /*
     Goal: Check threshold and switch mode 
@@ -104,7 +104,8 @@ namespace CanSat
         }
 
         Container_Data ParachuteDeploy(Container_Data container_data) // flight mode 'S'
-        {
+        {   
+            ParachuteServo parachute(36);
             parachute.ReleaseParachute();
 
             if (container_data.barometer_data.altitude <= container_data.barometer_data.altitude + 1 || container_data.barometer_data.altitude >= container_data.barometer_data.altitude - 1) {
