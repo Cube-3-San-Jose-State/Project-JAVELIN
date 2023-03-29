@@ -8,6 +8,7 @@
 #include "../include/rules-engine.hpp"
 #include "../include/mode-select.hpp"
 #include "../include/container-dto.hpp"
+#include "../include/camera-system.hpp"
 
 using namespace CanSat;
 
@@ -19,6 +20,7 @@ XBEE Xbee(14, 15);
 MPL3115A2 Barometer(17, 16);
 MPU6050 IMU(18, 19);
 LSM303AGR Compass(25, 24);
+CameraSystem camera_system(41, 27, 26, 21, 20);
 PA1616S GPS;
 RulesEngine rules_engine;
 ParachuteServo parachute(36);
@@ -80,6 +82,8 @@ void loop() {
     container_data = ReadAllSensors(container_data);
     container_data = rules_engine.MainValidation(container_data);
     container_data = mode_select.SelectMode(container_data);
+
+    camera_system.TakeVideoAll(5000);
     
     json_data = mission_control_handler.FormatContainerData(container_data);
     Serial.println(json_data);
