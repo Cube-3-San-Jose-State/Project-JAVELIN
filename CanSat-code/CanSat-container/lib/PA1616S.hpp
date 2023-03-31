@@ -128,9 +128,5 @@ namespace CanSat{
             float GetLatitude(){
                 return translate_latitude(splitData["latitude"], splitData["latitude_direction"]);
             }
-
-            float GetAltitude(){
-                return atof( splitData["altitude"].c_str() );
-            }
     };
 }

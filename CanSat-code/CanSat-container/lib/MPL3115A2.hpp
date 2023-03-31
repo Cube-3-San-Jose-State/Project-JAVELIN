@@ -28,9 +28,9 @@ namespace CanSat {
   	class MPL3115A2 {
     private:
 		struct data{
-			float relativeAltitude = 0.0;
-			float pressure = 0.0;
-			float temperature = 0.0;
+			float altitude;
+			float pressure;
+			float temperature;
 		};
 		data barometer_data;
 		int sda, scl;
@@ -62,8 +62,8 @@ namespace CanSat {
 	  	}
 
     public:
-		float starting_height;
-		float starting_pressure;
+		float elevation_offset;
+		float calculated_sea_level_press;
 
 		//MPL(sda, scl, baseAltitude)
 		MPL3115A2(int _sda, int _scl){
@@ -71,29 +71,38 @@ namespace CanSat {
 			scl = _scl;
 		}
 
-		void Initialize(){	
+		void Initialize(){
 			Wire1.begin();
 			Wire1.setSDA(sda);
 			Wire1.setSCL(scl);
-			
+
 			setModeStandby();
 			setModeBarometer();
+			setOffsetPressure(0);
+			setOffsetTemperature(0);
+			setOffsetAltitude(0);
+			setBarometricInput(0.0);
+			elevation_offset = 0;
+			calculated_sea_level_press = 0;
+			setOversampleRate(7);
+			enableEventFlags();
+			setModeActive();
+
+			float baseAltitude = 25.0;
+			runCalibration(baseAltitude);
+
+			setModeStandby();
+			setModeBarometer();
+			setBarometricInput(calculated_sea_level_press);
 			setOversampleRate(7);
 			enableEventFlags();
 			setModeActive();
 			
-			starting_height = 0;
-			starting_pressure = 0;
-
-			runCalibration( (float)10 );
+			setModeAltimeter();
 		};
 
 		void Update(){
-			barometer_data.pressure = ReadPressure();
-			if (barometer_data.pressure != 0) {
-				float height = 44330.77 * (1 - pow((barometer_data.pressure / 101325), .1902632)); //equation is per page 6 on datasheet
-				barometer_data.relativeAltitude = height - starting_height;
-			}
+			barometer_data.altitude = ReadAltitude();
 			barometer_data.temperature = ReadTemperature();
 		}
 		
@@ -102,11 +111,39 @@ namespace CanSat {
 			return barometer_data;
 		}
 
+		float ReadAltitude(){
+			toggleOneShot(); 
+			int counter = 0;
+
+			if ( (IIC_Read(STATUS) & MPL3115A2_REGISTER_STATUS_PDR) == 0)  return barometer_data.altitude;
+
+			// Read altitude registers
+			Wire1.beginTransmission(MPL3115A2_ADDRESS);
+			Wire1.write(OUT_P_MSB); 
+			Wire1.endTransmission(false); 
+			if (Wire1.requestFrom(MPL3115A2_ADDRESS, 3) != 3) { return -999; }
+
+			byte msb, csb, lsb;
+			msb = Wire1.read();
+			csb = Wire1.read();
+			lsb = Wire1.read();
+			// The least significant bytes l_altitude and l_temp are 4-bit, fractional values, so you must cast the calulation in (float),
+			// shift the value over 4 spots to the right and divide by 16 (since there are 16 values in 4-bits). 
+
+			float tempcsb = (lsb>>4)/16.0;
+			float altitude = (float)( (msb << 8) | csb) + tempcsb;
+			return(altitude);
+		}
+
 		float ReadPressure(){
-			toggleOneShot(); //Toggle the OST bit causing the sensor to immediately take another reading
+			if((IIC_Read(STATUS) & MPL3115A2_REGISTER_STATUS_PDR ) == 0) toggleOneShot(); //Toggle the OST bit causing the sensor to immediately take another reading
 
 			//Wait for PDR bit, indicates we have new pressure data
-			if ( (IIC_Read(STATUS) & MPL3115A2_REGISTER_STATUS_PDR ) == 0) return barometer_data.pressure;
+			int counter = 0;
+			while( (IIC_Read(STATUS) & MPL3115A2_REGISTER_STATUS_PDR ) == 0) {
+				if(++counter > 512) return(-999); 
+				delay(1);
+			}
 
 			// Read pressure registers
 			Wire1.beginTransmission(MPL3115A2_ADDRESS);
@@ -179,6 +216,12 @@ namespace CanSat {
 			IIC_Write(CTRL_REG1, tempSetting);
 		}
 
+		void setModeAltimeter(){
+			byte tempSetting = IIC_Read(CTRL_REG1); //Read current settings
+			tempSetting |= (1<<7); //Set ALT bit
+  			IIC_Write(CTRL_REG1, tempSetting);
+		}
+
 		void setModeStandby(){ // Puts the sensor into Standby mode. Required when changing CTRL1 register
 			byte tempSetting = IIC_Read(CTRL_REG1); //Read current settings
 			tempSetting &= ~(1<<0); //Clear SBYB bit for Standby mode
@@ -203,21 +246,44 @@ namespace CanSat {
 
 		void enableEventFlags(){  IIC_Write(PT_DATA_CFG, 0x07); } // Enable all three pressure and temp event flags 
 
-		void runCalibration(float sample_count){
-			float current_pressure = 0.0;
-			float previous_pressure = 0.0;
-			float average_pressure = 0.0;
+		int8_t offsetAltitude(){ return (int8_t) IIC_Read(OFF_H); }
 
-			for (int i = 0; i < sample_count; i++){
-				while ( previous_pressure == current_pressure || current_pressure == 0.0){ // Wait till sensor is outputting real numbers (not 0.0), then save initial pressure to starting_pressure
-					current_pressure = ReadPressure();
-				}
-				average_pressure += current_pressure;
-				previous_pressure = current_pressure;
+		void setOffsetAltitude(int8_t offset){ IIC_Write(OFF_H, offset); }
+
+		float offsetPressure(){ return (float) IIC_Read(OFF_P); }
+			
+		void setOffsetPressure(const char offset){ IIC_Write(OFF_P, offset); }
+			
+		float offsetTemperature(){ return (float) IIC_Read(OFF_T) * 0.0625 ; }
+			
+		void setOffsetTemperature(const char offset){ IIC_Write(OFF_T, offset);  }
+			
+		// and the functions by http://www.henrylahr.com/?p=99
+		void setBarometricInput(float pressSeaLevel){
+			IIC_Write(BAR_IN_MSB, (unsigned int)(pressSeaLevel / 2)>>8);
+			IIC_Write(BAR_IN_LSB, (unsigned int)(pressSeaLevel / 2)&0xFF);
+		};
+
+		void runCalibration(float currentElevation){
+			float pressureAccum = 0.0;
+			float pressure = 0.0;
+			
+			setModeStandby();		// this is needed to change control registers
+			setModeBarometer();		// Measure pressure in Pascals
+			setOversampleRate(7);	// Set Oversample to the recommended 128 --> 512ms
+			enableEventFlags();		// Enable all three pressure and temp event flags 
+			setModeActive();		// switch back to active measurement mode
+			
+			for (byte i=0;i<6;i++){
+				pressure = ReadPressure();
+				pressureAccum = pressureAccum + pressure;
 			}
-			average_pressure /= sample_count;
-			starting_pressure = average_pressure;
-			starting_height = 44330.77 * (1 - pow( (starting_pressure / 101325), .1902632 ));
+			float currpress = pressureAccum / 6; //average pressure over 6 samples
+
+			float powElement = pow(1.0-(currentElevation*0.0000225577), 5.255877);
+			calculated_sea_level_press = currpress / powElement;
+
+			elevation_offset = 101325.0 - (101325.0 * powElement);
 		};
   	};
 }

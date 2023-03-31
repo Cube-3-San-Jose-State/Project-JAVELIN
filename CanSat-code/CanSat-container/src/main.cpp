@@ -51,10 +51,9 @@ Container_Data ReadAllSensors(Container_Data container_data){
     
     container_data.gps_data.latitude = GPS.GetLatitude();
     container_data.gps_data.longitude = GPS.GetLongitude();
-    container_data.gps_data.exactAltitude = GPS.GetAltitude();
 
     container_data.barometer_data.temperature = Barometer.GetData().temperature;
-    container_data.barometer_data.relativeAltitude = Barometer.GetData().relativeAltitude;
+    container_data.barometer_data.altitude = Barometer.GetData().altitude;
 
     container_data.compass_data.magnet_x = Compass.GetMagneticField().x;
     container_data.compass_data.magnet_y = Compass.GetMagneticField().y;
