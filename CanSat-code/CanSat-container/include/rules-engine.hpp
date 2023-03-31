@@ -70,7 +70,7 @@ namespace CanSat
 
             bool ValidateAltitude(Container_Data container_data)
             {
-                if (container_data.barometer_data.altitude > -1 && container_data.barometer_data.altitude < 9000000 && container_data.barometer_data.temperature > -1 && container_data.barometer_data.temperature < 900)
+                if (container_data.barometer_data.relativeAltitude > -1 && container_data.barometer_data.relativeAltitude < 9000000 && container_data.barometer_data.temperature > -1 && container_data.barometer_data.temperature < 900)
                 {
                     return true;
                 }
