@@ -30,7 +30,7 @@ namespace CanSat
         {
             int accelY = container_data.imu_data.acceleration_y * ACCEL_CONVERSION;
 
-            if (accelY > LAUNCHED_ACCEL_THRESHOLD && container_data.barometer_data.altitude > LAUNCHED_ALTITUDE_THRESHOLD){
+            if (accelY > LAUNCHED_ACCEL_THRESHOLD && container_data.barometer_data.relativeAltitude > LAUNCHED_ALTITUDE_THRESHOLD){
                 container_data.flight_mode = 'L';
             }
             return container_data;
@@ -38,8 +38,8 @@ namespace CanSat
 
         Container_Data Launched(Container_Data container_data) // flight mode 'L'
         {
-            int maxAlt = container_data.barometer_data.altitude;
-            if (container_data.barometer_data.altitude < maxAlt){
+            int maxAlt = container_data.barometer_data.relativeAltitude;
+            if (container_data.barometer_data.relativeAltitude < maxAlt){
                 altitudeCounter ++;
             }
             else {
@@ -54,7 +54,7 @@ namespace CanSat
 
         Container_Data Deployed(Container_Data container_data) // flight mode 'D'
         {
-            if (container_data.barometer_data.altitude < PARACHUTE_DEPLOY_ALTITUDE) {
+            if (container_data.barometer_data.relativeAltitude < PARACHUTE_DEPLOY_ALTITUDE) {
                 parachuteThresholdMetCounter++;
             } 
             else {
@@ -72,8 +72,8 @@ namespace CanSat
             ParachuteServo parachute(36);
             parachute.ReleaseParachute();
 
-            if (container_data.barometer_data.altitude <= container_data.barometer_data.altitude + 1 || container_data.barometer_data.altitude >= container_data.barometer_data.altitude -1) {
-                stationaryCounter ++;
+            if (container_data.barometer_data.relativeAltitude <= container_data.barometer_data.relativeAltitude + 1 || container_data.barometer_data.relativeAltitude >= container_data.barometer_data.relativeAltitude -1) {
+                stationaryCounter++;
             }
             else {
                 stationaryCounter = 0;
