@@ -9,6 +9,7 @@ namespace CanSat
             MiniSpyCamera(int trig_pin)
             {
                trig = trig_pin;
+               pinMode(trig, OUTPUT);
             }
             
 

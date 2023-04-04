@@ -41,7 +41,7 @@ namespace CanSat
         {
             //Average starting altitude. Collects 100 samples then once done collecting, sets it
             if (container_data.heartbeat_count > 25 && container_data.heartbeat_count < 125) {
-                initialAltitude += container_data.barometer_data.altitude;
+                initialAltitude += container_data.barometer_data.relativeAltitude;
             }
 
             if (initialAltitudeSet == false && container_data.heartbeat_count > 125) {
@@ -65,7 +65,7 @@ namespace CanSat
         {
             int accelY = container_data.imu_data.acceleration_y * ACCEL_CONVERSION;
             // if (accel is > 10m/s^2 AND altitude has raised LAUNCHED_ALTITUDE_INCREASE_THRESHOLD) steak is incremented. At 5, switch to launched
-            if (accelY > LAUNCHED_ACCEL_THRESHOLD && container_data.barometer_data.altitude > (initialAltitude+LAUNCHED_ALTITUDE_INCREASE_THRESHOLD)){
+            if (accelY > LAUNCHED_ACCEL_THRESHOLD && container_data.barometer_data.relativeAltitude > (initialAltitude+LAUNCHED_ALTITUDE_INCREASE_THRESHOLD)){
                 launchedCounter++;
             }
 
@@ -76,10 +76,12 @@ namespace CanSat
 
         Container_Data Launched(Container_Data container_data) // flight mode 'L'
         {
-            if (container_data.barometer_data.altitude < previousAltitude){
-                descentCounter++;
-            } else {
-                descentCounter = 0;
+            int maxAlt = container_data.barometer_data.relativeAltitude;
+            if (container_data.barometer_data.relativeAltitude < maxAlt){
+                altitudeCounter ++;
+            }
+            else {
+                altitudeCounter = 0;
             }
 
             if (descentCounter >= SAMPLE_COUNT){
@@ -89,8 +91,8 @@ namespace CanSat
         }
 
         Container_Data Deployed(Container_Data container_data) // flight mode 'D'
-        {
-            if (container_data.barometer_data.altitude < initialAltitude + PARACHUTE_ALTITUDE_THRESHOLD) {
+        
+            if (container_data.barometer_data.relativeAltitude < PARACHUTE_DEPLOY_ALTITUDE) {
                 parachuteThresholdMetCounter++;
             } 
             else {
@@ -105,10 +107,10 @@ namespace CanSat
 
         Container_Data ParachuteDeploy(Container_Data container_data) // flight mode 'S'
         {   
-            ParachuteServo parachute(36);
-            parachute.ReleaseParachute();
-
-            if (container_data.barometer_data.altitude <= container_data.barometer_data.altitude + 1 || container_data.barometer_data.altitude >= container_data.barometer_data.altitude - 1) {
+            //ParachuteServo parachute(36);
+            //parachute.ReleaseParachute();
+            
+            if (container_data.barometer_data.relativeAltitude <= container_data.barometer_data.relativeAltitude + 1 || container_data.barometer_data.relativeAltitude >= container_data.barometer_data.relativeAltitude -1) {
                 stationaryCounter++;
             }
             else {
