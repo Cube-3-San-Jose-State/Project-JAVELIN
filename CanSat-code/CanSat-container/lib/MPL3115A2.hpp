@@ -1,7 +1,6 @@
 /*
-	Code is largely based on code by Mario Canistra, Nathan Seidle,, and SparkFun.
+	Code is largely based on code by Mario Canistra, Nathan Seidle, and SparkFun.
 */
-
 #include "Arduino.h"
 #include <Wire.h>
 
@@ -85,7 +84,7 @@ namespace CanSat {
 			starting_height = 0;
 			starting_pressure = 0;
 
-			runCalibration( (float)10 );
+			runCalibration( (float) 15 );
 		};
 
 		void Update(){
@@ -204,6 +203,7 @@ namespace CanSat {
 		void enableEventFlags(){  IIC_Write(PT_DATA_CFG, 0x07); } // Enable all three pressure and temp event flags 
 
 		void runCalibration(float sample_count){
+			Serial.println("Running Calibration");
 			float current_pressure = 0.0;
 			float previous_pressure = 0.0;
 			float average_pressure = 0.0;
