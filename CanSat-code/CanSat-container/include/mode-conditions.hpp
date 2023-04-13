@@ -44,13 +44,13 @@ namespace CanSat {
         Container_Data PreFlight(Container_Data container_data) // flight mode 'U'
         {  
             //Average starting altitude. Collects 20 samples then once done collecting, sets it
-            if (container_data.heartbeat_count > 10 && container_data.heartbeat_count < 30) {
+            if (container_data.heartbeat_count > 10 && container_data.heartbeat_count < 40) {
                 initialAltitude += container_data.barometer_data.relativeAltitude;
             }
 
-            if (initialAltitudeSet == false && container_data.heartbeat_count > 30) {
+            if (initialAltitudeSet == false && container_data.heartbeat_count > 40) {
                 initialAltitudeSet = true;
-                initialAltitude /= 20;
+                initialAltitude /= 30;
                 previousAltitude = initialAltitude; // for use during launched mode
             }
 
@@ -67,13 +67,24 @@ namespace CanSat {
 
         Container_Data Armed(Container_Data container_data) //flight mode 'A'
         {
-            if (initialAltitude + container_data.barometer_data.relativeAltitude > (initialAltitude + LAUNCHED_ALTITUDE_INCREASE_THRESHOLD)) {
-                launchedCounter++;
-            } else {
+            // if (initialAltitude + container_data.barometer_data.relativeAltitude > (initialAltitude + LAUNCHED_ALTITUDE_INCREASE_THRESHOLD)) {
+            //     launchedCounter++;
+            // } else {
+            //     launchedCounter = 0;
+            // }
+
+            // if (launchedCounter >= SAMPLE_COUNT) {
+            //     container_data.flight_mode = 'L';
+            // }
+
+            if (initialAltitude + container_data.barometer_data.relativeAltitude > 3 + initialAltitude) {
+                launchedCounter ++;
+            }
+            else {
                 launchedCounter = 0;
             }
 
-            if (launchedCounter >= SAMPLE_COUNT) {
+            if (launchedCounter > SAMPLE_COUNT) {
                 container_data.flight_mode = 'L';
             }
 
@@ -88,7 +99,11 @@ namespace CanSat {
                 descentCounter = 0;
             } 
             // else: altitude is less than max - 1m
-            else if (initialAltitude + container_data.barometer_data.relativeAltitude < maxAlt - DESCENT_ERROR_MARGIN) { 
+            // else if (initialAltitude + container_data.barometer_data.relativeAltitude < maxAlt - DESCENT_ERROR_MARGIN) { 
+            //     descentCounter++;
+            // }
+
+            else if (initialAltitude + container_data.barometer_data.relativeAltitude < maxAlt - DESCENT_ERROR_MARGIN || initialAltitude + container_data.barometer_data.relativeAltitude < maxAlt + DESCENT_ERROR_MARGIN) { 
                 descentCounter++;
             }
 
@@ -100,30 +115,55 @@ namespace CanSat {
 
         Container_Data Deployed(Container_Data container_data) // flight mode 'D'
         {
-            if (container_data.barometer_data.relativeAltitude < PARACHUTE_DEPLOY_ALTITUDE) {
-                parachuteThresholdMetCounter++;
-            }
-            else {
-                parachuteThresholdMetCounter = 0;
+            // if (container_data.barometer_data.relativeAltitude < PARACHUTE_DEPLOY_ALTITUDE) {
+            //     parachuteThresholdMetCounter++;
+            // }
+            // else {
+            //     parachuteThresholdMetCounter = 0;
+            // }
+
+            // if (parachuteThresholdMetCounter > SAMPLE_COUNT) {
+            //     container_data.flight_mode = 'S';
+            // }
+
+            if (initialAltitude + container_data.barometer_data.relativeAltitude < 3 + initialAltitude) {
+                container_data.flight_mode = 'S';
             }
 
-        if (parachuteThresholdMetCounter > SAMPLE_COUNT) {
-            container_data.flight_mode = 'S';
-        }
+            
         return container_data;
     }
 
     Container_Data ParachuteDeploy(Container_Data container_data) // flight mode 'S'
     {
 
-        if (container_data.barometer_data.relativeAltitude <= container_data.barometer_data.relativeAltitude + 1 || container_data.barometer_data.relativeAltitude >= container_data.barometer_data.relativeAltitude - 1) {
-            stationaryCounter++;
-        }
-        else {
-            stationaryCounter = 0;
-        }
+        // if (container_data.barometer_data.relativeAltitude <= container_data.barometer_data.relativeAltitude + 2 || container_data.barometer_data.relativeAltitude >= container_data.barometer_data.relativeAltitude - 2) {
+        //     stationaryCounter++;
+        // }
 
-        if (stationaryCounter > SAMPLE_COUNT) {
+        // if (container_data.barometer_data.relativeAltitude <= container_data.barometer_data.relativeAltitude + 2 || container_data.barometer_data.relativeAltitude >= container_data.barometer_data.relativeAltitude - 2) {
+        //     stationaryCounter++;
+        // }
+        // else {
+        //     stationaryCounter = 0;
+        // }
+
+        // if (stationaryCounter > SAMPLE_COUNT) {
+        //     container_data.flight_mode = 'G';
+        // }
+
+        // if (container_data.barometer_data.relativeAltitude < 2 && container_data.barometer_data.relativeAltitude > 0 ) {
+        //     stationaryCounter++;
+        // }
+        // else {
+        //     stationaryCounter = 0;
+        // }
+
+        // if (stationaryCounter > SAMPLE_COUNT) {
+        //     container_data.flight_mode = 'G';
+        // }
+
+        if (container_data.barometer_data.relativeAltitude < 2) {
             container_data.flight_mode = 'G';
         }
         return container_data;

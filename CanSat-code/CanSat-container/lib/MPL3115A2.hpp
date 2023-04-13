@@ -84,7 +84,7 @@ namespace CanSat {
 			starting_height = 0;
 			starting_pressure = 0;
 
-			runCalibration( (float) 15 );
+			runCalibration( (float) 30 );
 		};
 
 		void Update(){
