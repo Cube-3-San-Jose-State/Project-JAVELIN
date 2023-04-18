@@ -2,6 +2,7 @@
 #include "../lib/ParachuteServo.hpp"
 
 #define SAMPLE_COUNT 3
+#define LAND_SAMPLE_COUNT 5
 #define ACCEL_CONVERSION 9.80665 / 16384
 
 #define LAUNCHED_ALTITUDE_INCREASE_THRESHOLD 1
@@ -99,11 +100,11 @@ namespace CanSat {
                 descentCounter = 0;
             } 
             // else: altitude is less than max - 1m
-            // else if (initialAltitude + container_data.barometer_data.relativeAltitude < maxAlt - DESCENT_ERROR_MARGIN) { 
+            // else if (initialAltitude + containher_data.barometer_data.relativeAltitude < maxAlt - DESCENT_ERROR_MARGIN) { 
             //     descentCounter++;
             // }
 
-            else if (initialAltitude + container_data.barometer_data.relativeAltitude < maxAlt - DESCENT_ERROR_MARGIN || initialAltitude + container_data.barometer_data.relativeAltitude < maxAlt + DESCENT_ERROR_MARGIN) { 
+            else if (initialAltitude + container_data.barometer_data.relativeAltitude < maxAlt - DESCENT_ERROR_MARGIN) { 
                 descentCounter++;
             }
 
@@ -141,16 +142,16 @@ namespace CanSat {
         //     stationaryCounter++;
         // }
 
-        // if (container_data.barometer_data.relativeAltitude <= container_data.barometer_data.relativeAltitude + 2 || container_data.barometer_data.relativeAltitude >= container_data.barometer_data.relativeAltitude - 2) {
-        //     stationaryCounter++;
-        // }
-        // else {
-        //     stationaryCounter = 0;
-        // }
+        if (container_data.barometer_data.relativeAltitude <= container_data.barometer_data.relativeAltitude + 1 && container_data.barometer_data.relativeAltitude >= container_data.barometer_data.relativeAltitude - 1) {
+            stationaryCounter++;
+        }
+        else {
+            stationaryCounter = 0;
+        }
 
-        // if (stationaryCounter > SAMPLE_COUNT) {
-        //     container_data.flight_mode = 'G';
-        // }
+        if (stationaryCounter > LAND_SAMPLE_COUNT) {
+            container_data.flight_mode = 'G';
+        }
 
         // if (container_data.barometer_data.relativeAltitude < 2 && container_data.barometer_data.relativeAltitude > 0 ) {
         //     stationaryCounter++;
@@ -163,9 +164,9 @@ namespace CanSat {
         //     container_data.flight_mode = 'G';
         // }
 
-        if (container_data.barometer_data.relativeAltitude < 2) {
-            container_data.flight_mode = 'G';
-        }
+      //  if (container_data.barometer_data.relativeAltitude < 2) {
+       //     container_data.flight_mode = 'G';
+       // }
         return container_data;
     }
 

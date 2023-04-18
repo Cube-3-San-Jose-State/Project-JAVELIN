@@ -25,7 +25,7 @@ namespace CanSat
                 case 'D':
                     return modes.Deployed(container_data);
 
-                case 'P':
+                case 'S':
                     return modes.ParachuteDeploy(container_data);
 
                 case 'G':
