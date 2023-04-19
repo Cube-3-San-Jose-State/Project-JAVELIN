@@ -204,6 +204,7 @@ namespace CanSat {
 
 		void runCalibration(float sample_count){
 			Serial.println("Running Calibration");
+			bool pluggedIn = true;
 			float current_pressure = 0.0;
 			float previous_pressure = 0.0;
 			float average_pressure = 0.0;
@@ -211,10 +212,21 @@ namespace CanSat {
 			for (int i = 0; i < sample_count; i++){
 				while ( previous_pressure == current_pressure || current_pressure == 0.0){ // Wait till sensor is outputting real numbers (not 0.0), then save initial pressure to starting_pressure
 					current_pressure = ReadPressure();
+					if (current_pressure == -999.00) {
+						Serial.println("Barometer not plugged in. Setting starting altitude offset to 0");
+						pluggedIn = false;
+						break;
+					}
 				}
 				average_pressure += current_pressure;
 				previous_pressure = current_pressure;
 			}
+
+			if (pluggedIn == false) {
+				starting_height = 0;
+				return;
+			}
+
 			average_pressure /= sample_count;
 			starting_pressure = average_pressure;
 			starting_height = 44330.77 * (1 - pow( (starting_pressure / 101325), .1902632 ));
