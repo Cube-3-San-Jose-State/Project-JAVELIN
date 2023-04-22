@@ -21,7 +21,6 @@ MPU6050 IMU(18, 19);
 LSM303AGR Compass(25, 24);
 PA1616S GPS;
 RulesEngine rules_engine;
-ParachuteServo parachute(36);
 String json_data = "";
 int heartbeat = 0;
 
@@ -67,7 +66,7 @@ Container_Data ReadAllSensors(Container_Data container_data){
 
 void setup() {
     Serial.begin(9600);
-    Barometer.Initialize();
+    Barometer.Initialize(10.0);
     IMU.Initialize();
     GPS.Initialize();
     Compass.Initialize();
@@ -87,4 +86,3 @@ void loop() {
     Xbee.transmitData(json_data);
     delay(100);
 }
-
