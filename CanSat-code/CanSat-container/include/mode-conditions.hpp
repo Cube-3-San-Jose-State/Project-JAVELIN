@@ -2,7 +2,7 @@
 #include "../lib/ParachuteServo.hpp"
 
 #define SAMPLE_COUNT 3
-#define LAND_SAMPLE_COUNT 5
+#define LAND_SAMPLE_COUNT 10
 #define ACCEL_CONVERSION 9.80665 / 16384
 
 #define LAUNCHED_ALTITUDE_INCREASE_THRESHOLD 1
@@ -142,7 +142,7 @@ namespace CanSat {
         //     stationaryCounter++;
         // }
 
-        if (container_data.barometer_data.relativeAltitude <= container_data.barometer_data.relativeAltitude + 1 && container_data.barometer_data.relativeAltitude >= container_data.barometer_data.relativeAltitude - 1) {
+        if (container_data.barometer_data.relativeAltitude <= 1 && container_data.barometer_data.relativeAltitude >= -1) {
             stationaryCounter++;
         }
         else {
