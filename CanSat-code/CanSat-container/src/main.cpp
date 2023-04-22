@@ -66,7 +66,7 @@ Container_Data ReadAllSensors(Container_Data container_data){
 
 void setup() {
     Serial.begin(9600);
-    Barometer.Initialize();
+    Barometer.Initialize(10.0);
     IMU.Initialize();
     GPS.Initialize();
     Compass.Initialize();
@@ -86,4 +86,3 @@ void loop() {
     Xbee.transmitData(json_data);
     delay(100);
 }
-
