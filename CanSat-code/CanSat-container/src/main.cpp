@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <SD.h>
 #include "../lib/MPL3115A2.hpp"
 #include "../lib/MPU6050.hpp"
 #include "../lib/PA1616S.hpp"
@@ -24,6 +25,7 @@ RulesEngine rules_engine;
 ParachuteServo parachute(36);
 String json_data = "";
 int heartbeat = 0;
+File dataFile;
 
 /**
  * @brief Updates each sensor, and maps updated data to the container_data object
@@ -65,6 +67,18 @@ Container_Data ReadAllSensors(Container_Data container_data){
 }
 
 
+void saveToSD(String data) {
+    dataFile = SD.open("flight_data.txt", FILE_WRITE);
+    if (dataFile) {
+        dataFile.println(data);   
+        dataFile.close();
+    }
+    else {
+        Serial.println("Error opening flight data file");
+    }
+}
+
+
 void setup() {
     Serial.begin(9600);
     Barometer.Initialize();
@@ -72,10 +86,26 @@ void setup() {
     GPS.Initialize();
     Compass.Initialize();
     Xbee.Initialize();
+    
+    if (!SD.begin(BUILTIN_SDCARD)) {
+        Serial.println("SD card initialization failed!");
+        return;
+    }
+    
+    dataFile = SD.open("flight_data.txt", FILE_WRITE);
+    if (dataFile) {
+        dataFile.truncate(0);
+        dataFile.close();
+    }
+    else {
+        Serial.println("Error opening flight data file");
+    }
+
 
     container_data.id = 'C';
     container_data.flight_mode = 'U';
 }
+
 
 void loop() {
     container_data = ReadAllSensors(container_data);
@@ -85,6 +115,8 @@ void loop() {
     json_data = mission_control_handler.FormatContainerData(container_data);
     Serial.println(json_data);
     Xbee.transmitData(json_data);
+    saveToSD(json_data);
+
     delay(100);
 }
 
