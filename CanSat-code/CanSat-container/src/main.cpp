@@ -25,7 +25,8 @@ RulesEngine rules_engine;
 String json_data = "";
 int heartbeat = 0;
 File dataFile;
-
+int sd_card_counter = 10; // Number of times to check for a SD card until giving up
+bool sd_card_active = true;
 /**
  * @brief Updates each sensor, and maps updated data to the container_data object
  * 
@@ -67,6 +68,7 @@ Container_Data ReadAllSensors(Container_Data container_data){
 
 
 void saveToSD(String data) {
+    if (sd_card_active == false) return;
     dataFile = SD.open("flight_data.txt", FILE_WRITE);
     if (dataFile) {
         dataFile.println(data);   
@@ -77,17 +79,10 @@ void saveToSD(String data) {
     }
 }
 
-
-void setup() {
-    Serial.begin(9600);
-    Barometer.Initialize(10.0);
-    IMU.Initialize();
-    GPS.Initialize();
-    Compass.Initialize();
-    Xbee.Initialize();
-    
+void clearSDCard() {
     if (!SD.begin(BUILTIN_SDCARD)) {
         Serial.println("SD card initialization failed!");
+        sd_card_active = false;
         return;
     }
     
@@ -99,7 +94,17 @@ void setup() {
     else {
         Serial.println("Error opening flight data file");
     }
+}
 
+void setup() {
+    Serial.begin(9600);
+    delay(1000);
+    Barometer.Initialize(10.0);
+    IMU.Initialize();
+    GPS.Initialize();
+    Compass.Initialize();
+    Xbee.Initialize();
+    clearSDCard();
 
     container_data.id = 'C';
     container_data.flight_mode = 'U';

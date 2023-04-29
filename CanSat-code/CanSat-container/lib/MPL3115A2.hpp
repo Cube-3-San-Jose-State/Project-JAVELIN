@@ -10,6 +10,8 @@
 #define MPL3115A2_REGISTER_STATUS_PDR	0x04
 
 #define STATUS     0x00
+#define WHO_AM_I_ADDR   0x0C
+#define WHO_AM_I_CONFIRMATION   0xE
 #define OUT_P_MSB  0x01
 #define OUT_P_CSB  0x02
 #define OUT_P_LSB  0x03
@@ -59,10 +61,21 @@ namespace CanSat {
 			Wire1.write(value);
 			Wire1.endTransmission(true);
 	  	}
+		
+		bool CheckConnection() {
+			Wire1.beginTransmission(MPL3115A2_ADDRESS);
+			Wire1.write(WHO_AM_I_ADDR);
+			Wire1.endTransmission();
+			Wire1.requestFrom(MPL3115A2_ADDRESS, 1);
+			byte response = Wire1.read();
+			Serial.println(response);
+			return (response == WHO_AM_I_CONFIRMATION);
+		}
 
     public:
 		float starting_height;
 		float starting_altitude;
+		bool pluggedIn;
 
 		//MPL(sda, scl, baseAltitude)
 		MPL3115A2(int _sda, int _scl){
@@ -75,18 +88,24 @@ namespace CanSat {
 			Wire1.setSDA(sda);
 			Wire1.setSCL(scl);
 			
+			pluggedIn = CheckConnection();
+			Serial.println(pluggedIn);
+			
 			setModeAltimeter();
 			setOversampleRate(7);
 			enableEventFlags();
 
-			runCalibration(sampleCount);
+			if (pluggedIn) runCalibration(sampleCount);
+			else { 
+				Serial.println("Barometer not detected, skipping calibration");
+				starting_altitude = 65531;
+			}
 		};
 
 		void Update(){
 			barometer_data.relativeAltitude = ReadAltitude();
 			barometer_data.temperature = ReadTemperature();
 		}
-		
 
 		data GetData(){
 			return barometer_data;
@@ -180,28 +199,19 @@ namespace CanSat {
 
 		void runCalibration(float sample_count){
 			Serial.println("Running Calibration");
-			bool pluggedIn = true;
 			float current_altitude = 0.0;
 			float previous_altitude = 0.0;
 			float average_altitude = 0.0;
 
 			Serial.print("Starting altitude: ");
 			for (int i = 0; i < sample_count; i++){
-				while ( previous_altitude == current_altitude || current_altitude == 0.0){ // Wait till sensor is outputting real numbers (not 0.0), then save initial pressure to starting_pressure
+				while ( previous_altitude == current_altitude || current_altitude == 0 ){ // Wait till sensor is outputting real numbers (not 0.0), then save initial pressure to starting_pressure
 					current_altitude = ReadAltitude();
-					if (current_altitude == 0.00) {
-						Serial.println("Barometer not plugged in. Setting starting altitude offset to 0");
-						pluggedIn = false;
-						break;
-					}
 				}
 				Serial.print(current_altitude);
 				Serial.print(" + ");
 				average_altitude += current_altitude;
-			}
-			if (pluggedIn == false) {
-				starting_height = 0;
-				return;
+				previous_altitude = current_altitude;
 			}
 
 			average_altitude /= sample_count;
