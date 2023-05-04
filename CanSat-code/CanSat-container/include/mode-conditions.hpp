@@ -1,45 +1,44 @@
+#include <unordered_map>
 #include "../include/container-dto.hpp"
 #include "../lib/ParachuteServo.hpp"
 
-#define SAMPLE_COUNT 3
+#define PREFLIGHT_EXIT_ALTITUDE 3 // Leaves Preflight at +3m from starting altitude AND
+#define PREFLIGHT_EXIT_ACCEL 2 // Leaves Preflight at +2m/s
+
+#define LAUNCHED_EXIT_ACCEL -2 // Leaves launched at -2m/s AND
+#define LAUNCHED_EXIT_STREAK 5 // Leaves launched after 5 readings of descending values
+
+#define DEPLOYED_EXIT_ALTITUDE 5 // Leaves deployed at +5m from starting altitude AND
+#define DEPLOYED_EXIT_STREAK 5 // Leaves deployed after 5 readings of values under threshold
+
+#define PARACHUTE_EXIT_ALTITUDE_RANGE 1 //Leaves parachute if altitude is within +-1m AND
+#define PARACHUTE_EXIT_ACCEL 1 //Leaves parachute if altitude is < 1m/s AND
+#define PARACHUTE_EXIT_STREAK 5 // Leaves parachute if above is true 5 times
+
 #define ACCEL_CONVERSION 9.80665 / 16384
 
-#define LAUNCHED_ALTITUDE_INCREASE_THRESHOLD 1
-
-#define DESCENT_ERROR_MARGIN .5
-
-#define PARACHUTE_ALTITUDE_THRESHOLD 5
-
-#define PARACHUTE_DEPLOY_ALTITUDE 400
-#define PARACHUTE_DEPLOY_SAMPLE_COUNT 7
-#define CONTAINER_SAMPLE_ALTITUDE 10
-#define CONTAINER_SAMPLE_ACCEL 10
-#define ALTITUDE_SAMPLE_COUNT 5
 
 /*
     Goal: Check threshold and switch mode
     Update each sensor required
 */
 
-namespace CanSat {
-    class ModeConditions {
+namespace CanSat
+{
+    
+    class ModeConditions
+    {
     private:
-        float initialAltitude = 0;
-        bool initialAltitudeSet = false;
-        bool gpsSet = true;
-
-        float maxAlt = 0;
-        int launchedCounter = 0;
-
-        float previousAltitude;
-        int descentCounter = 0;
-
-        int deployedCounter = 0;
-        int parachuteThresholdMetCounter;
-        int stationaryCounter;
-
-
-
+        //Launched variables
+        float maxAltitude = 0;
+        int fallingCounter = 0;
+        //Deployed variables
+        int deployParachuteCounter = 0;
+        //Parachute variables
+        // ParachuteServo parachute(36);
+        bool parachuteOpened = false;
+        int groundedCounter;
+        // Grounded variables
     public:
         Container_Data PreFlight(Container_Data container_data) // flight mode 'U'
         {  
@@ -67,13 +66,12 @@ namespace CanSat {
 
         Container_Data Armed(Container_Data container_data) //flight mode 'A'
         {
-            if (initialAltitude + container_data.barometer_data.relativeAltitude > (initialAltitude + LAUNCHED_ALTITUDE_INCREASE_THRESHOLD)) {
-                launchedCounter++;
-            } else {
-                launchedCounter = 0;
-            }
+            bool preflightAltitudeThresholdMet = container_data.barometer_data.relativeAltitude > PREFLIGHT_EXIT_ALTITUDE;
+            bool preflightAccelThresholdMet = (container_data.imu_data.acceleration_y * ACCEL_CONVERSION) >= PREFLIGHT_EXIT_ACCEL;
+            bool gpsSet = (container_data.gps_data.latitude != 0.0 && container_data.gps_data.latitude != 0.0); 
+            //bool gpsSet = true; // Uncomment for testing purposes
 
-            if (launchedCounter >= SAMPLE_COUNT) {
+            if (preflightAltitudeThresholdMet && preflightAccelThresholdMet && gpsSet){
                 container_data.flight_mode = 'L';
             }
 
@@ -82,52 +80,61 @@ namespace CanSat {
 
         Container_Data Launched(Container_Data container_data) // flight mode 'L'
         {
-            // if (altitude is still climbing): setmaxalt
-            if (initialAltitude + container_data.barometer_data.relativeAltitude > initialAltitude + maxAlt) {
-                maxAlt = container_data.barometer_data.relativeAltitude;
-                descentCounter = 0;
-            } 
-            // else: altitude is less than max - 1m
-            else if (initialAltitude + container_data.barometer_data.relativeAltitude < maxAlt - DESCENT_ERROR_MARGIN) { 
-                descentCounter++;
+            if (container_data.barometer_data.relativeAltitude < maxAltitude){
+                fallingCounter++;
+            } else {
+                maxAltitude = container_data.barometer_data.relativeAltitude;
+                fallingCounter = 0;
             }
 
-            if (descentCounter >= SAMPLE_COUNT) {
+            bool fallingAccelThresholdMet = (container_data.imu_data.acceleration_y * ACCEL_CONVERSION) <= LAUNCHED_EXIT_ACCEL;
+            bool fallingThresholdMet = fallingCounter >= LAUNCHED_EXIT_STREAK;
+            if (fallingAccelThresholdMet && fallingThresholdMet) {
                 container_data.flight_mode = 'D';
             }
+
             return container_data;
         }
 
         Container_Data Deployed(Container_Data container_data) // flight mode 'D'
         {
-            if (container_data.barometer_data.relativeAltitude < PARACHUTE_DEPLOY_ALTITUDE) {
-                parachuteThresholdMetCounter++;
+            if (container_data.barometer_data.relativeAltitude < DEPLOYED_EXIT_ALTITUDE) {
+                deployParachuteCounter++;
+            } 
+            else {
+                deployParachuteCounter = 0;
+            }
+
+            bool deployParachuteThresholdMet = deployParachuteCounter >= DEPLOYED_EXIT_STREAK;
+            if (deployParachuteThresholdMet) { 
+                container_data.flight_mode = 'S';
+            }
+
+            return container_data;
+        }
+
+        Container_Data ParachuteDeploy(Container_Data container_data) // flight mode 'S'
+        {
+            // if (parachuteOpened == false) {
+            //     parachute.ReleaseParachute();
+            //     parachuteOpened = true;
+            // }
+            
+            if (container_data.barometer_data.relativeAltitude <= PARACHUTE_EXIT_ALTITUDE_RANGE && container_data.barometer_data.relativeAltitude >= -PARACHUTE_EXIT_ALTITUDE_RANGE) {
+                groundedCounter++;
             }
             else {
-                parachuteThresholdMetCounter = 0;
+                groundedCounter = 0;
             }
+            
+            bool parachuteRangeThresholdMet = groundedCounter >= PARACHUTE_EXIT_STREAK;
+            bool parachuteAccelThresholdMet = container_data.imu_data.acceleration_y < PARACHUTE_EXIT_ACCEL;
 
-        if (parachuteThresholdMetCounter > SAMPLE_COUNT) {
-            container_data.flight_mode = 'S';
+            if (parachuteRangeThresholdMet && parachuteAccelThresholdMet) {
+                container_data.flight_mode = 'G';
+            }
+            return container_data;
         }
-        return container_data;
-    }
-
-    Container_Data ParachuteDeploy(Container_Data container_data) // flight mode 'S'
-    {
-
-        if (container_data.barometer_data.relativeAltitude <= container_data.barometer_data.relativeAltitude + 1 || container_data.barometer_data.relativeAltitude >= container_data.barometer_data.relativeAltitude - 1) {
-            stationaryCounter++;
-        }
-        else {
-            stationaryCounter = 0;
-        }
-
-        if (stationaryCounter > SAMPLE_COUNT) {
-            container_data.flight_mode = 'G';
-        }
-        return container_data;
-    }
 
     Container_Data Land(Container_Data container_data) // flight mode 'G'
     {

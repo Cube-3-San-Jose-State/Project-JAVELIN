@@ -10,6 +10,8 @@
 #define MPL3115A2_REGISTER_STATUS_PDR	0x04
 
 #define STATUS     0x00
+#define WHO_AM_I_ADDR   0x0C
+#define WHO_AM_I_CONFIRMATION   0xC4
 #define OUT_P_MSB  0x01
 #define OUT_P_CSB  0x02
 #define OUT_P_LSB  0x03
@@ -62,7 +64,8 @@ namespace CanSat {
 
     public:
 		float starting_height;
-		float starting_pressure;
+		float starting_altitude;
+		int pluggedIn;
 
 		//MPL(sda, scl, baseAltitude)
 		MPL3115A2(int _sda, int _scl){
@@ -70,78 +73,69 @@ namespace CanSat {
 			scl = _scl;
 		}
 
-		void Initialize(){	
+		void Initialize(float sampleCount){	
 			Wire1.begin();
 			Wire1.setSDA(sda);
 			Wire1.setSCL(scl);
 			
-			setModeStandby();
-			setModeBarometer();
+			
+			setModeAltimeter();
 			setOversampleRate(7);
 			enableEventFlags();
-			setModeActive();
 			
-			starting_height = 0;
-			starting_pressure = 0;
-
-			runCalibration( (float) 15 );
+			pluggedIn = IIC_Read(WHO_AM_I_ADDR) == WHO_AM_I_CONFIRMATION;
+			if (pluggedIn) {
+				runCalibration(10.0);
+			}
 		};
 
 		void Update(){
-			barometer_data.pressure = ReadPressure();
-			if (barometer_data.pressure != 0) {
-				float height = 44330.77 * (1 - pow((barometer_data.pressure / 101325), .1902632)); //equation is per page 6 on datasheet
-				barometer_data.relativeAltitude = height - starting_height;
-			}
+			barometer_data.relativeAltitude = ReadAltitude();
 			barometer_data.temperature = ReadTemperature();
 		}
-		
 
 		data GetData(){
 			return barometer_data;
 		}
 
-		float ReadPressure(){
-			toggleOneShot(); //Toggle the OST bit causing the sensor to immediately take another reading
+		float ReadAltitude() {
+			toggleOneShot();
 
-			//Wait for PDR bit, indicates we have new pressure data
-			if ( (IIC_Read(STATUS) & MPL3115A2_REGISTER_STATUS_PDR ) == 0) return barometer_data.pressure;
+			// if no new data, return previous value;
+			if ((IIC_Read(STATUS) & MPL3115A2_REGISTER_STATUS_PDR ) == 0 ) {
+				return barometer_data.relativeAltitude;
+			}
 
-			// Read pressure registers
 			Wire1.beginTransmission(MPL3115A2_ADDRESS);
 			Wire1.write(OUT_P_MSB);
-			Wire1.endTransmission(false); // Send data to I2C dev with option for a repeated start. THIS IS NECESSARY and not supported before Arduino V1.0.1!
-			if (Wire1.requestFrom(MPL3115A2_ADDRESS, 3) != 3) { return -999; }
+			Wire1.endTransmission(false);
+			if (Wire1.requestFrom(MPL3115A2_ADDRESS, 3) != 3) {
+				return barometer_data.relativeAltitude;
+			}
 
-			byte msb, csb, lsb;
+			byte msb, lsb, csb;
 			msb = Wire1.read();
 			csb = Wire1.read();
 			lsb = Wire1.read();
-			
-			toggleOneShot();
 
-			// Pressure comes back as a left shifted 20 bit number
-			long pressure_whole = (long)msb<<16 | (long)csb<<8 | (long)lsb;
-			pressure_whole >>= 6; //Pressure is an 18 bit number with 2 bits of decimal. Get rid of decimal portion.
-
-			lsb &= B00110000; //Bits 5/4 represent the fractional component
-			lsb >>= 4; //Get it right aligned
-			float pressure_decimal = (float)lsb/4.0; //Turn it into fraction
-
-			float pressure = (float)pressure_whole + pressure_decimal;
-			return(pressure);
+			float tempcsb = (lsb >> 4) / 16.0;
+			float altitude = (float) ( (msb << 8) | csb ) + tempcsb;
+			return (altitude - starting_altitude);
 		}
 
 		float ReadTemperature(){
 			if((IIC_Read(STATUS) & (1<<1)) == 0) toggleOneShot(); //Toggle the OST bit causing the sensor to immediately take another reading
-			if ( (IIC_Read(STATUS) & MPL3115A2_REGISTER_STATUS_TDR) == 0) return barometer_data.temperature; //Returns if no new data
+
+			if ((IIC_Read(STATUS) & MPL3115A2_REGISTER_STATUS_TDR ) == 0 ) {
+				return barometer_data.temperature;
+			}
 
 			// Read temperature registers
 			Wire1.beginTransmission(MPL3115A2_ADDRESS);
 			Wire1.write(OUT_T_MSB);  
 			Wire1.endTransmission(false);
 			if (Wire1.requestFrom(MPL3115A2_ADDRESS, 2) != 2) {
-				return -999;
+				return barometer_data.temperature;
 			}
 
 			byte msb, lsb;
@@ -172,22 +166,10 @@ namespace CanSat {
 			return(temperature);
 		}
 				
-		void setModeBarometer() {
+		void setModeAltimeter() {
 			byte tempSetting = IIC_Read(CTRL_REG1); //Read current settings
-			tempSetting &= ~(1<<7); //Clear ALT bit
+			tempSetting |= (1<<7); //Clear ALT bit
 			IIC_Write(CTRL_REG1, tempSetting);
-		}
-
-		void setModeStandby(){ // Puts the sensor into Standby mode. Required when changing CTRL1 register
-			byte tempSetting = IIC_Read(CTRL_REG1); //Read current settings
-			tempSetting &= ~(1<<0); //Clear SBYB bit for Standby mode
-			IIC_Write(CTRL_REG1, tempSetting);
-		}
-
-		void setModeActive(){
-			byte tempSetting = IIC_Read(CTRL_REG1); //Read current settings
-  			tempSetting |= (1<<0); //Set SBYB bit for Active mode
-  			IIC_Write(CTRL_REG1, tempSetting);
 		}
 
 		void setOversampleRate(byte sampleRate){
@@ -204,20 +186,26 @@ namespace CanSat {
 
 		void runCalibration(float sample_count){
 			Serial.println("Running Calibration");
-			float current_pressure = 0.0;
-			float previous_pressure = 0.0;
-			float average_pressure = 0.0;
+			float current_altitude = 0.0;
+			float previous_altitude = 0.0;
+			float average_altitude = 0.0;
 
+			Serial.print("Starting altitude: ");
 			for (int i = 0; i < sample_count; i++){
-				while ( previous_pressure == current_pressure || current_pressure == 0.0){ // Wait till sensor is outputting real numbers (not 0.0), then save initial pressure to starting_pressure
-					current_pressure = ReadPressure();
+				while ( previous_altitude == current_altitude || current_altitude == 0 ){ // Wait till sensor is outputting real numbers (not 0.0), then save initial pressure to starting_pressure
+					current_altitude = ReadAltitude();
 				}
-				average_pressure += current_pressure;
-				previous_pressure = current_pressure;
+				Serial.print(current_altitude);
+				Serial.print(" + ");
+				average_altitude += current_altitude;
+				previous_altitude = current_altitude;
 			}
-			average_pressure /= sample_count;
-			starting_pressure = average_pressure;
-			starting_height = 44330.77 * (1 - pow( (starting_pressure / 101325), .1902632 ));
+
+			average_altitude /= sample_count;
+			starting_altitude = average_altitude;
+			starting_height = average_altitude;
+			Serial.print(" = ");
+			Serial.println(starting_altitude);
 		};
   	};
 }

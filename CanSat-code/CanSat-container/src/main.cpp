@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <SD.h>
 #include "../lib/MPL3115A2.hpp"
 #include "../lib/MPU6050.hpp"
 #include "../lib/PA1616S.hpp"
@@ -23,7 +24,9 @@ PA1616S GPS;
 RulesEngine rules_engine;
 String json_data = "";
 int heartbeat = 0;
-
+File dataFile;
+int sd_card_counter = 10; // Number of times to check for a SD card until giving up
+bool sd_card_active = true;
 /**
  * @brief Updates each sensor, and maps updated data to the container_data object
  * 
@@ -64,17 +67,49 @@ Container_Data ReadAllSensors(Container_Data container_data){
 }
 
 
+void saveToSD(String data) {
+    if (sd_card_active == false) return;
+    dataFile = SD.open("flight_data.txt", FILE_WRITE);
+    if (dataFile) {
+        dataFile.println(data);   
+        dataFile.close();
+    }
+    else {
+        Serial.println("Error opening flight data file");
+    }
+}
+
+void clearSDCard() {
+    if (!SD.begin(BUILTIN_SDCARD)) {
+        Serial.println("SD card initialization failed!");
+        sd_card_active = false;
+        return;
+    }
+    
+    dataFile = SD.open("flight_data.txt", FILE_WRITE);
+    if (dataFile) {
+        dataFile.truncate(0);
+        dataFile.close();
+    }
+    else {
+        Serial.println("Error opening flight data file");
+    }
+}
+
 void setup() {
     Serial.begin(9600);
-    Barometer.Initialize();
+    delay(1000);
+    Barometer.Initialize(10.0);
     IMU.Initialize();
     GPS.Initialize();
     Compass.Initialize();
     Xbee.Initialize();
+    clearSDCard();
 
     container_data.id = 'C';
     container_data.flight_mode = 'U';
 }
+
 
 void loop() {
     container_data = ReadAllSensors(container_data);
@@ -84,6 +119,7 @@ void loop() {
     json_data = mission_control_handler.FormatContainerData(container_data);
     Serial.println(json_data);
     Xbee.transmitData(json_data);
-    delay(100);
-}
+    saveToSD(json_data);
 
+    delay(50);
+}
