@@ -16,9 +16,6 @@ namespace CanSat
                 case 'U':
                     return modes.PreFlight(container_data);
 
-                case 'A':
-                    return modes.Armed(container_data);
-
                 case 'L':
                     return modes.Launched(container_data);
 

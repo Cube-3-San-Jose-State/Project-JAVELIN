@@ -11,7 +11,7 @@
 
 #define STATUS     0x00
 #define WHO_AM_I_ADDR   0x0C
-#define WHO_AM_I_CONFIRMATION   0xE
+#define WHO_AM_I_CONFIRMATION   0xC4
 #define OUT_P_MSB  0x01
 #define OUT_P_CSB  0x02
 #define OUT_P_LSB  0x03
@@ -61,21 +61,11 @@ namespace CanSat {
 			Wire1.write(value);
 			Wire1.endTransmission(true);
 	  	}
-		
-		bool CheckConnection() {
-			Wire1.beginTransmission(MPL3115A2_ADDRESS);
-			Wire1.write(WHO_AM_I_ADDR);
-			Wire1.endTransmission();
-			Wire1.requestFrom(MPL3115A2_ADDRESS, 1);
-			byte response = Wire1.read();
-			Serial.println(response);
-			return (response == WHO_AM_I_CONFIRMATION);
-		}
 
     public:
 		float starting_height;
 		float starting_altitude;
-		bool pluggedIn;
+		int pluggedIn;
 
 		//MPL(sda, scl, baseAltitude)
 		MPL3115A2(int _sda, int _scl){
@@ -88,17 +78,14 @@ namespace CanSat {
 			Wire1.setSDA(sda);
 			Wire1.setSCL(scl);
 			
-			pluggedIn = CheckConnection();
-			Serial.println(pluggedIn);
 			
 			setModeAltimeter();
 			setOversampleRate(7);
 			enableEventFlags();
-
-			if (pluggedIn) runCalibration(sampleCount);
-			else { 
-				Serial.println("Barometer not detected, skipping calibration");
-				starting_altitude = 65531;
+			
+			pluggedIn = IIC_Read(WHO_AM_I_ADDR) == WHO_AM_I_CONFIRMATION;
+			if (pluggedIn) {
+				runCalibration(10.0);
 			}
 		};
 
