@@ -43,13 +43,13 @@ namespace CanSat
         Container_Data PreFlight(Container_Data container_data) // flight mode 'U'
         {  
             //Average starting altitude. Collects 20 samples then once done collecting, sets it
-            if (container_data.heartbeat_count > 10 && container_data.heartbeat_count < 30) {
+            if (container_data.heartbeat_count > 10 && container_data.heartbeat_count < 40) {
                 initialAltitude += container_data.barometer_data.relativeAltitude;
             }
 
-            if (initialAltitudeSet == false && container_data.heartbeat_count > 30) {
+            if (initialAltitudeSet == false && container_data.heartbeat_count > 40) {
                 initialAltitudeSet = true;
-                initialAltitude /= 20;
+                initialAltitude /= 30;
                 previousAltitude = initialAltitude; // for use during launched mode
             }
 
