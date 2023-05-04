@@ -121,5 +121,5 @@ void loop() {
     Xbee.transmitData(json_data);
     saveToSD(json_data);
 
-    delay(100);
+    delay(50);
 }
