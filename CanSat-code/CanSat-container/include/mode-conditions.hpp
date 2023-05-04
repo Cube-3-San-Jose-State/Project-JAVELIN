@@ -13,7 +13,7 @@
 #define STATIONARY_SAMPLE_COUNT 5
 
 /*
-    Goal: Check threshold and switch mode 
+    Goal: Check threshold and switch mode
     Update each sensor required
 */
 
@@ -27,6 +27,30 @@ namespace CanSat
         int stationaryCounter;
     public:
         Container_Data PreFlight(Container_Data container_data) // flight mode 'U'
+        {  
+            //Average starting altitude. Collects 20 samples then once done collecting, sets it
+            if (container_data.heartbeat_count > 10 && container_data.heartbeat_count < 40) {
+                initialAltitude += container_data.barometer_data.relativeAltitude;
+            }
+
+            if (initialAltitudeSet == false && container_data.heartbeat_count > 40) {
+                initialAltitudeSet = true;
+                initialAltitude /= 30;
+                previousAltitude = initialAltitude; // for use during launched mode
+            }
+
+            // if (gpsSet == false && container_data.gps_data.latitude != 0 && container_data.gps_data.longitude != 0) {
+            //     gpsSet = true;
+            // }
+
+            if (initialAltitudeSet == true && gpsSet == true) {
+                container_data.flight_mode = 'A';
+            }
+
+            return container_data;
+        }
+
+        Container_Data Armed(Container_Data container_data) //flight mode 'A'
         {
             int accelY = container_data.imu_data.acceleration_y * ACCEL_CONVERSION;
 
@@ -85,10 +109,9 @@ namespace CanSat
             return container_data;
         }
 
-        Container_Data Land(Container_Data container_data) // flight mode 'G'
-        {
-            return container_data;
-        }
-    };
-
+    Container_Data Land(Container_Data container_data) // flight mode 'G'
+    {
+        return container_data;
+    }
+};
 }

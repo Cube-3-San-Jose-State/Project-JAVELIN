@@ -13,10 +13,13 @@ namespace CanSat
             {
                 switch (container_data.flight_mode)
                 {
-                case 'U': // Preflight
+                case 'U':
                     return modes.PreFlight(container_data);
 
-                case 'L': // Launched
+                case 'A':
+                    return modes.Armed(container_data);
+
+                case 'L':
                     return modes.Launched(container_data);
 
                 case 'D':
