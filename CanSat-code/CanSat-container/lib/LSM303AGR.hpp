@@ -25,14 +25,14 @@ namespace CanSat
             Wire2.setSDA(sda);
             Wire2.setSCL(scl);
         }
-
+ 
         void Initialize()
         {
             Wire2.begin();
 
             Wire2.beginTransmission(MAG_ADDRESS);
             Wire2.write(MAG_CFG_REG_A);
-            Wire2.write(0x00); // Set magnetometer data rate to 10 Hz
+            Wire2.write(0x01); 
             Wire2.endTransmission();
 
             Wire2.beginTransmission(MAG_ADDRESS);
